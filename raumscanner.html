@@ -256,7 +256,7 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────
 const CFG = {
-  base: 'https://cloudfiles.senckenberg-runkel.de/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
+  base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   user: 'da65e470-cdc4-45fb-81f6-7438e75284ce',
   pass: 'NfR5L-mA8rH-Lg9rZ-cD6D2-TAPs6',
   folder: 'RaumScanner/checkins',
@@ -517,7 +517,7 @@ async function getAllCheckins() {
     .filter(h=>h.endsWith('.json'));
   const results = await Promise.all(hrefs.map(async h => {
     try {
-      const fr = await fetch('https://cloudfiles.senckenberg-runkel.de'+h,{headers:{'Authorization':AUTH}});
+      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
       return fr.ok ? fr.json() : null;
     } catch {return null;}
   }));
