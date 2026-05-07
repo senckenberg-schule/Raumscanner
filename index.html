@@ -256,7 +256,7 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────
 const CFG = {
-  base: 'https://cloudfiles.senckenberg-runkel.de/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
+  base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   user: 'da65e470-cdc4-45fb-81f6-7438e75284ce',
   pass: 'NfR5L-mA8rH-Lg9rZ-cD6D2-TAPs6',
   folder: 'RaumScanner/checkins',
@@ -351,16 +351,30 @@ function updateLastCard() {
 }
 
 // ── SCANNER ───────────────────────────────────────────
-function startScanner() {
+async function startScanner() {
   document.getElementById('scanner-container').classList.add('active');
-  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
-    .then(stream => {
-      videoStream = stream;
-      const v = document.getElementById('scanner-video');
-      v.srcObject = stream; v.play();
-      scanning = true;
-      requestAnimationFrame(scanFrame);
-    }).catch(() => { toast('Kamera nicht verfügbar'); stopScanner(); });
+  let stream = null;
+  try {
+    // Rückkamera bevorzugt, aber nicht erzwingen
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
+  } catch(e1) {
+    try {
+      // Fallback: irgendeine Kamera
+      stream = await navigator.mediaDevices.getUserMedia({video:true});
+    } catch(e2) {
+      toast('Kamera nicht verfügbar – Berechtigung prüfen');
+      stopScanner();
+      return;
+    }
+  }
+  videoStream = stream;
+  const v = document.getElementById('scanner-video');
+  v.srcObject = stream;
+  v.onloadedmetadata = () => {
+    v.play();
+    scanning = true;
+    requestAnimationFrame(scanFrame);
+  };
 }
 function scanFrame() {
   if (!scanning) return;
@@ -503,7 +517,7 @@ async function getAllCheckins() {
     .filter(h=>h.endsWith('.json'));
   const results = await Promise.all(hrefs.map(async h => {
     try {
-      const fr = await fetch('https://cloudfiles.senckenberg-runkel.de'+h,{headers:{'Authorization':AUTH}});
+      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
       return fr.ok ? fr.json() : null;
     } catch {return null;}
   }));
