@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.4</title>
+  <title>RaumScanner V1.5</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -152,14 +152,27 @@
     .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
     .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--text3);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center}
     .search-clear.visible{display:flex}
+    /* Start / Role selection */
+    .role-btn{display:flex;align-items:center;gap:16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;cursor:pointer;width:100%;text-align:left;transition:border-color .15s;-webkit-appearance:none}
+    .role-btn:active{background:var(--bg)}
+    .role-btn.student:active,.role-btn.student:focus{border-color:var(--blue)}
+    .role-btn.teacher:active,.role-btn.teacher:focus{border-color:var(--purple)}
+    .role-icon{font-size:36px;flex-shrink:0}
+    .role-text{flex:1}
+    .role-title{font-size:18px;font-weight:700;color:var(--text)}
+    .role-sub{font-size:13px;color:var(--text3);margin-top:3px}
+    /* Collapsible room header */
+    .room-header{cursor:pointer;user-select:none}
+    .collapse-arrow{font-size:11px;margin-left:6px;transition:transform .2s;display:inline-block}
+    .collapse-arrow.closed{transform:rotate(-90deg)}
   </style>
 </head>
 <body>
 <div class="app">
   <div class="safe-top"></div>
   <div class="nav-header">
-    <div class="nav-side"><span id="nav-version" style="font-size:11px;color:var(--text3)">V1.4</span></div>
-    <div class="nav-title" id="nav-title">RaumScanner</div>
+    <div class="nav-side"><span id="nav-version" style="font-size:11px;color:var(--text3)">V1.5</span></div>
+    <div class="nav-title" id="nav-title" onclick="goHome()" style="cursor:pointer">RaumScanner</div>
     <div class="nav-side right" id="nav-right"></div>
   </div>
 
@@ -175,6 +188,33 @@
   </div>
 
   <div class="content">
+
+    <!-- ── STARTSCREEN ── -->
+    <div class="screen active" id="screen-start">
+      <div style="text-align:center;padding:56px 0 40px">
+        <div style="font-size:68px;margin-bottom:14px">🏫</div>
+        <div style="font-size:26px;font-weight:700;margin-bottom:8px">RaumScanner</div>
+        <div style="font-size:15px;color:var(--text3)" id="start-subtitle">Wähle deine Rolle</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <button class="role-btn student" onclick="selectRole('student')">
+          <div class="role-icon">👤</div>
+          <div class="role-text">
+            <div class="role-title">Lernende/r</div>
+            <div class="role-sub">Einchecken in Räume</div>
+          </div>
+          <div style="color:var(--blue);font-size:22px">›</div>
+        </button>
+        <button class="role-btn teacher" onclick="selectRole('teacher')">
+          <div class="role-icon">👨‍🏫</div>
+          <div class="role-text">
+            <div class="role-title">Lernbegleiter/in</div>
+            <div class="role-sub">Übersicht &amp; Verwaltung</div>
+          </div>
+          <div style="color:var(--purple);font-size:22px">›</div>
+        </button>
+      </div>
+    </div>
 
     <!-- ── LERNENDE SETUP ── -->
     <div class="screen" id="screen-s-setup">
@@ -208,6 +248,9 @@
           <div class="current-room" id="s-current-room">—</div>
           <div class="current-since" id="s-current-since">—</div>
         </div>
+        <button onclick="doLogout('student')" style="width:100%;margin-top:8px;padding:12px;background:rgba(255,59,48,.12);color:var(--red);border:1.5px solid rgba(255,59,48,.3);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer">
+          Raum verlassen
+        </button>
       </div>
       <button class="btn btn-outline" onclick="showSetupStudent()" style="margin-top:8px">✏️ Namen ändern</button>
 
@@ -390,7 +433,7 @@
 
   </div><!-- /content -->
 
-  <div class="tab-bar">
+  <div class="tab-bar" id="main-tab-bar" style="display:none">
     <div class="tab-item active" id="maintab-student" onclick="switchMainTab('student')">
       <div class="tab-icon">👤</div><div class="tab-label">Lernende</div>
     </div>
@@ -454,6 +497,7 @@ let teacherUnlocked = false, pinVal = '', pollTimer = null, roTimer = null;
 let videoStream = null, scanning = false, scanContext = 'student';
 let currentModalFile = null;
 let lastCheckins = [], searchQuery = '';
+const collapsedRooms = new Set();
 
 // ── UTILS ────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -496,18 +540,65 @@ function showScreen(id) {
 // ── BOOT ────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   $('today-date').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const name = ls('s_name'), kl = ls('s_class');
-  if (name && kl) {
-    setStudentGreeting(name, kl);
-    refreshCurrentCard();
-    showScreen('screen-s-checkin');
-    showStudentSubtabs();
-    loadRoomOverview();
-  } else {
-    showScreen('screen-s-setup');
-    $('subtabs-student').classList.remove('visible');
-  }
+  // Show start screen; pre-fill subtitle if name known
+  const savedName = ls('s_name');
+  if (savedName) $('start-subtitle').textContent = 'Willkommen zurück, ' + savedName + '!';
+  showScreen('screen-start');
+  $('subtabs-student').classList.remove('visible');
+  $('subtabs-teacher').classList.remove('visible');
+  $('main-tab-bar').style.display = 'none';
+  $('nav-title').textContent = 'RaumScanner';
 });
+
+// ── STARTSCREEN ──────────────────────────────────────────────────
+function selectRole(role) {
+  $('main-tab-bar').style.display = 'flex';
+  mainTab = role;
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  $('maintab-' + role).classList.add('active');
+
+  if (role === 'student') {
+    $('subtabs-teacher').classList.remove('visible');
+    const name = ls('s_name'), kl = ls('s_class');
+    if (name && kl) {
+      setStudentGreeting(name, kl);
+      refreshCurrentCard();
+      showStudentSubtabs();
+      showScreen('screen-s-checkin');
+      $('nav-title').textContent = 'RaumScanner';
+      loadRoomOverview();
+      startRoTimer();
+    } else {
+      $('subtabs-student').classList.remove('visible');
+      showScreen('screen-s-setup');
+      $('nav-title').textContent = 'Einrichten';
+    }
+  } else {
+    $('subtabs-student').classList.remove('visible');
+    stopRoTimer();
+    if (teacherUnlocked) {
+      showTeacherSubtabs();
+      switchTeacherTab('overview');
+    } else {
+      pinVal = ''; updatePinDots();
+      $('subtabs-teacher').classList.remove('visible');
+      showScreen('screen-t-pin');
+      $('nav-title').textContent = 'Lernbegleiter-Zugang';
+    }
+  }
+}
+
+function goHome() {
+  stopPoll(); stopRoTimer();
+  teacherUnlocked = false;
+  $('subtabs-student').classList.remove('visible');
+  $('subtabs-teacher').classList.remove('visible');
+  $('main-tab-bar').style.display = 'none';
+  const savedName = ls('s_name');
+  $('start-subtitle').textContent = savedName ? 'Willkommen zurück, ' + savedName + '!' : 'Wähle deine Rolle';
+  showScreen('screen-start');
+  $('nav-title').textContent = 'RaumScanner';
+}
 
 // ── MAIN TAB SWITCH ──────────────────────────────────────────────
 function switchMainTab(tab) {
@@ -516,16 +607,17 @@ function switchMainTab(tab) {
   $('maintab-' + tab).classList.add('active');
   $('subtabs-student').classList.remove('visible');
   $('subtabs-teacher').classList.remove('visible');
+  $('main-tab-bar').style.display = 'flex';
   stopRoTimer();
 
   if (tab === 'student') {
     stopPoll();
     const name = ls('s_name');
     if (name) { showStudentSubtabs(); switchStudentTab(studentSubTab); }
-    else showScreen('screen-s-setup');
+    else { showScreen('screen-s-setup'); $('nav-title').textContent = 'Einrichten'; }
   } else {
     if (teacherUnlocked) { showTeacherSubtabs(); switchTeacherTab(teacherSubTab); }
-    else { pinVal=''; updatePinDots(); showScreen('screen-t-pin'); $('nav-title').textContent='Lernbegleiter-Zugang'; }
+    else { pinVal=''; updatePinDots(); $('subtabs-teacher').classList.remove('visible'); showScreen('screen-t-pin'); $('nav-title').textContent='Lernbegleiter-Zugang'; }
   }
 }
 
@@ -983,34 +1075,42 @@ function renderDashboard(teachers, students, query) {
   });
   [roomMap, lernbueroMap].forEach(m => Object.values(m).forEach(r => r.students.sort((a,b)=>a.name.localeCompare(b.name))));
 
+  // Helper: render one collapsible room card
+  function roomCard(key, icon, color, roomName, count, studentsArr) {
+    const cKey = sanitize(key);
+    const isCollapsed = collapsedRooms.has(cKey);
+    const arrow = isCollapsed ? 'closed' : '';
+    const bodyDisplay = isCollapsed ? 'none' : 'block';
+    let h = `<div class="room-card">
+      <div class="room-header" style="background:${color}" onclick="toggleRoom('${cKey}')">
+        ${icon} <span class="room-title">${esc(roomName)}</span>
+        <span class="room-count">${count}</span>
+        <span class="collapse-arrow ${arrow}">▼</span>
+      </div>
+      <div id="rbody-${cKey}" style="display:${bodyDisplay}">`;
+    studentsArr.forEach(s => {
+      const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
+      h += `<div class="person-row" onclick="openHistoryModal('${fname}','${esc(s.name)}')">
+        <div class="avatar avatar-s">${esc(initials(s.name))}</div>
+        <div class="card-content"><div class="person-name">${esc(s.name)}</div><div class="person-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div></div>
+        <div style="color:var(--text3);font-size:18px">›</div></div>`;
+    });
+    h += `</div></div>`;
+    return h;
+  }
+
   // Capacity rooms with students
   if (Object.keys(roomMap).length) {
-    Object.entries(roomMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([,room]) => {
-      html += `<div class="room-card"><div class="room-header">📍 <span class="room-title">${esc(room.name)}</span><span class="room-count">${room.students.length}</span></div>`;
-      room.students.forEach(s => {
-        const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
-        html += `<div class="person-row" onclick="openHistoryModal('${fname}','${esc(s.name)}')">
-          <div class="avatar avatar-s">${esc(initials(s.name))}</div>
-          <div class="card-content"><div class="person-name">${esc(s.name)}</div><div class="person-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div></div>
-          <div style="color:var(--text3);font-size:18px">›</div></div>`;
-      });
-      html += `</div>`;
+    Object.entries(roomMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([k,room]) => {
+      html += roomCard(k, '📍', 'var(--blue)', room.name, room.students.length, room.students);
     });
   }
 
   // Lernbüros with students
   if (Object.keys(lernbueroMap).length) {
     html += `<div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px 4px">Lernbüros</div>`;
-    Object.entries(lernbueroMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([,room]) => {
-      html += `<div class="room-card"><div class="room-header" style="background:var(--green)">📚 <span class="room-title">${esc(room.name)}</span><span class="room-count">${room.students.length}</span></div>`;
-      room.students.forEach(s => {
-        const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
-        html += `<div class="person-row" onclick="openHistoryModal('${fname}','${esc(s.name)}')">
-          <div class="avatar avatar-s">${esc(initials(s.name))}</div>
-          <div class="card-content"><div class="person-name">${esc(s.name)}</div><div class="person-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div></div>
-          <div style="color:var(--text3);font-size:18px">›</div></div>`;
-      });
-      html += `</div>`;
+    Object.entries(lernbueroMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([k,room]) => {
+      html += roomCard(k, '📚', 'var(--green)', room.name, room.students.length, room.students);
     });
   }
 
@@ -1030,6 +1130,22 @@ function clearSearch() {
   $('t-search').value = '';
   onSearchInput('');
   $('t-search').focus();
+}
+
+// ── COLLAPSE / EXPAND ROOMS ───────────────────────────────────────
+function toggleRoom(key) {
+  const body  = $('rbody-' + key);
+  const arrow = body ? body.previousElementSibling.querySelector('.collapse-arrow') : null;
+  if (!body) return;
+  if (collapsedRooms.has(key)) {
+    collapsedRooms.delete(key);
+    body.style.display = 'block';
+    if (arrow) arrow.classList.remove('closed');
+  } else {
+    collapsedRooms.add(key);
+    body.style.display = 'none';
+    if (arrow) arrow.classList.add('closed');
+  }
 }
 function startPoll() { stopPoll(); pollTimer = setInterval(()=>{ if($('screen-t-overview').classList.contains('active')) loadDashboard(); }, CFG.poll); }
 function stopPoll()  { if(pollTimer){clearInterval(pollTimer);pollTimer=null;} }
