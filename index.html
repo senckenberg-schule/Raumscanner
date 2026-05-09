@@ -4,36 +4,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.5</title>
+  <title>RaumScanner V1.6</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
       --bg:#F2F2F7; --card:#FFFFFF; --text:#1C1C1E; --text2:#3C3C43; --text3:#8E8E93;
-      --border:#C6C6C8; --r:12px;
+      --border:#E5E5EA; --r:14px;
+      --shadow: 0 2px 12px rgba(0,0,0,.07);
+      --shadow-md: 0 4px 20px rgba(0,0,0,.11);
       --st: env(safe-area-inset-top,44px); --sb: env(safe-area-inset-bottom,34px);
     }
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
     .app{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available}
     .safe-top{height:var(--st);background:var(--card);min-height:44px}
-    .nav-header{background:var(--card);padding:8px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .nav-header{background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:8px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
     .nav-title{font-size:17px;font-weight:600;flex:1;text-align:center}
-    .nav-side{width:60px;font-size:13px;color:var(--text3)}
+    .nav-side{width:70px;font-size:13px;color:var(--text3)}
     .nav-side.right{text-align:right}
-    .subtab-bar{display:none;background:var(--card);border-bottom:1px solid var(--border);padding:0 16px}
+    .back-btn{display:none;align-items:center;gap:4px;background:none;border:none;color:var(--blue);font-size:15px;font-weight:500;cursor:pointer;padding:0;white-space:nowrap}
+    .back-btn.visible{display:flex}
+    .subtab-bar{display:none;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 16px}
     .subtab-bar.visible{display:flex}
-    .subtab{flex:1;text-align:center;padding:10px 4px;font-size:14px;font-weight:500;color:var(--text3);border-bottom:2.5px solid transparent;cursor:pointer}
+    .subtab{flex:1;text-align:center;padding:10px 4px;font-size:14px;font-weight:500;color:var(--text3);border-bottom:2.5px solid transparent;cursor:pointer;transition:color .15s}
     .subtab.active{color:var(--blue);border-bottom-color:var(--blue)}
-    .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:calc(var(--sb) + 90px)}
-    .tab-bar{display:flex;background:var(--card);border-top:1px solid var(--border);padding-bottom:var(--sb)}
-    .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:3px;cursor:pointer;color:var(--text3)}
-    .tab-item.active{color:var(--blue)}
-    .tab-icon{font-size:22px}.tab-label{font-size:10px;font-weight:500}
+    .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:calc(var(--sb) + 24px)}
     .screen{display:none}.screen.active{display:block}
-    .card{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+    .card{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
     .card-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:12px}
     .card-row:last-child{border-bottom:none}
     .card-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -45,10 +45,10 @@
     .btn-green{background:var(--green);color:#fff}
     .btn-red{background:var(--red);color:#fff}
     .btn-outline{background:var(--bg);color:var(--blue);border:1.5px solid var(--border)}
-    .btn-outline-red{background:var(--bg);color:var(--red);border:1.5px solid var(--red)}
+    .btn-outline-red{background:var(--bg);color:var(--red);border:1.5px solid rgba(255,59,48,.4)}
     .form-group{margin-bottom:16px}
     .form-label{font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:block;padding-left:4px}
-    .form-input{width:100%;padding:14px 16px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);font-size:17px;color:var(--text);-webkit-appearance:none}
+    .form-input{width:100%;padding:14px 16px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);font-size:17px;color:var(--text);-webkit-appearance:none;box-shadow:var(--shadow)}
     .form-input:focus{outline:none;border-color:var(--blue)}
     .sec-header{font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 8px 4px}
     .badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
@@ -56,7 +56,7 @@
     .badge-green{background:#E5F9EC;color:var(--green)}
     .badge-purple{background:#F3E8FF;color:var(--purple)}
     /* Room card (dashboard) */
-    .room-card{background:var(--card);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+    .room-card{background:var(--card);border-radius:var(--r);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
     .room-header{display:flex;align-items:center;padding:12px 16px;background:var(--blue);color:#fff;gap:10px}
     .room-header.green{background:var(--green)}
     .room-header.purple{background:var(--purple)}
@@ -79,16 +79,16 @@
     .tl-name{font-size:15px;font-weight:500}
     .tl-badge{font-size:11px;color:var(--green);font-weight:600}
     /* Current room hero */
-    .current-hero{background:var(--blue);border-radius:var(--r);padding:20px;margin-bottom:16px;color:#fff;text-align:center}
-    .current-label{font-size:13px;opacity:.8;margin-bottom:6px}
+    .current-hero{background:linear-gradient(135deg,var(--blue),#5856D6);border-radius:var(--r);padding:20px;margin-bottom:16px;color:#fff;text-align:center;box-shadow:0 4px 16px rgba(0,122,255,.3)}
+    .current-label{font-size:13px;opacity:.85;margin-bottom:6px}
     .current-room{font-size:24px;font-weight:700;margin-bottom:4px}
-    .current-since{font-size:13px;opacity:.7}
+    .current-since{font-size:13px;opacity:.75}
     /* PIN */
     .pin-dots{display:flex;gap:14px;justify-content:center;margin:24px 0}
     .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--text3);transition:background .1s}
     .pin-dot.filled{background:var(--blue);border-color:var(--blue)}
     .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;margin:0 auto}
-    .pin-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;font-size:24px;font-weight:300;cursor:pointer}
+    .pin-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;font-size:24px;font-weight:300;cursor:pointer;box-shadow:var(--shadow)}
     .pin-btn:active{background:var(--border)}
     /* Scanner */
     #scanner-wrap{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:200;display:none;flex-direction:column}
@@ -100,7 +100,7 @@
     .scanner-hint{color:#fff;font-size:14px;margin-top:20px;text-align:center;padding:0 32px}
     .scanner-cancel{position:absolute;bottom:calc(var(--sb) + 24px);left:50%;transform:translateX(-50%);background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:30px;padding:14px 40px;font-size:17px;font-weight:600;pointer-events:all;cursor:pointer}
     /* Success */
-    .success-circle{width:80px;height:80px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin:32px auto 16px;animation:pop .3s ease-out}
+    .success-circle{width:80px;height:80px;background:linear-gradient(135deg,var(--green),#30D158);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin:32px auto 16px;animation:pop .3s ease-out;box-shadow:0 4px 16px rgba(52,199,89,.4)}
     @keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
     /* Modal */
     .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end}
@@ -117,12 +117,12 @@
     .spinner{display:inline-block;border:2px solid rgba(0,0,0,.1);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .spinner-w{border-color:rgba(255,255,255,.3);border-top-color:#fff}
-    .toast{position:fixed;bottom:calc(var(--sb) + 85px);left:50%;transform:translateX(-50%) translateY(10px);background:rgba(0,0,0,.8);color:#fff;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all .25s;white-space:nowrap;z-index:999}
+    .toast{position:fixed;bottom:calc(var(--sb) + 24px);left:50%;transform:translateX(-50%) translateY(10px);background:rgba(0,0,0,.8);color:#fff;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all .25s;white-space:nowrap;z-index:999}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     /* QR result */
     .qr-result{display:none;flex-direction:column;align-items:center;padding:16px}
     /* Room overview (student side) */
-    .ro-card{background:var(--card);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:opacity .2s}
+    .ro-card{background:var(--card);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:opacity .2s;box-shadow:var(--shadow)}
     .ro-card.locked{opacity:.42}
     .ro-inner{display:flex;align-items:center;padding:13px 16px;gap:12px}
     .ro-icon{font-size:26px;flex-shrink:0;width:32px;text-align:center}
@@ -147,20 +147,33 @@
     .warn-banner-title{font-weight:700;font-size:15px;margin-bottom:2px}
     /* Search */
     .search-wrap{position:relative;margin-bottom:14px}
-    .search-input{width:100%;padding:11px 16px 11px 38px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);font-size:15px;color:var(--text);-webkit-appearance:none}
+    .search-input{width:100%;padding:11px 16px 11px 38px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);font-size:15px;color:var(--text);-webkit-appearance:none;box-shadow:var(--shadow)}
     .search-input:focus{outline:none;border-color:var(--blue)}
     .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
     .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--text3);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center}
     .search-clear.visible{display:flex}
-    /* Start / Role selection */
-    .role-btn{display:flex;align-items:center;gap:16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;cursor:pointer;width:100%;text-align:left;transition:border-color .15s;-webkit-appearance:none}
+
+    /* ── START SCREEN ── */
+    .start-hero{background:linear-gradient(145deg,#007AFF 0%,#5856D6 100%);border-radius:20px;padding:36px 24px 32px;margin-bottom:24px;color:#fff;text-align:center;box-shadow:0 8px 32px rgba(0,122,255,.35)}
+    .start-hero-icon{font-size:64px;margin-bottom:12px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.2))}
+    .start-hero-title{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+    .start-hero-sub{font-size:15px;opacity:.85}
+    .role-btn{display:flex;align-items:center;gap:16px;background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:18px 20px;cursor:pointer;width:100%;text-align:left;transition:border-color .15s, box-shadow .15s;-webkit-appearance:none;box-shadow:var(--shadow)}
     .role-btn:active{background:var(--bg)}
-    .role-btn.student:active,.role-btn.student:focus{border-color:var(--blue)}
-    .role-btn.teacher:active,.role-btn.teacher:focus{border-color:var(--purple)}
-    .role-icon{font-size:36px;flex-shrink:0}
+    .role-btn.student{border-left:4px solid var(--blue)}
+    .role-btn.student:active,.role-btn.student:focus-visible{border-color:var(--blue);box-shadow:0 4px 16px rgba(0,122,255,.2)}
+    .role-btn.teacher{border-left:4px solid var(--purple)}
+    .role-btn.teacher:active,.role-btn.teacher:focus-visible{border-color:var(--purple);box-shadow:0 4px 16px rgba(175,82,222,.2)}
+    .role-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+    .role-icon-wrap.blue{background:#E3F0FF}
+    .role-icon-wrap.purple{background:#F3E8FF}
     .role-text{flex:1}
     .role-title{font-size:18px;font-weight:700;color:var(--text)}
     .role-sub{font-size:13px;color:var(--text3);margin-top:3px}
+    .role-arrow{font-size:20px;font-weight:300}
+    .role-arrow.blue{color:var(--blue)}
+    .role-arrow.purple{color:var(--purple)}
+
     /* Collapsible room header */
     .room-header{cursor:pointer;user-select:none}
     .collapse-arrow{font-size:11px;margin-left:6px;transition:transform .2s;display:inline-block}
@@ -171,8 +184,11 @@
 <div class="app">
   <div class="safe-top"></div>
   <div class="nav-header">
-    <div class="nav-side"><span id="nav-version" style="font-size:11px;color:var(--text3)">V1.5</span></div>
-    <div class="nav-title" id="nav-title" onclick="goHome()" style="cursor:pointer">RaumScanner</div>
+    <div class="nav-side">
+      <button class="back-btn" id="back-btn" onclick="goHome()">‹ Start</button>
+      <span id="nav-version" style="font-size:11px;color:var(--text3)"></span>
+    </div>
+    <div class="nav-title" id="nav-title">RaumScanner</div>
     <div class="nav-side right" id="nav-right"></div>
   </div>
 
@@ -191,29 +207,30 @@
 
     <!-- ── STARTSCREEN ── -->
     <div class="screen active" id="screen-start">
-      <div style="text-align:center;padding:56px 0 40px">
-        <div style="font-size:68px;margin-bottom:14px">🏫</div>
-        <div style="font-size:26px;font-weight:700;margin-bottom:8px">RaumScanner</div>
-        <div style="font-size:15px;color:var(--text3)" id="start-subtitle">Wähle deine Rolle</div>
+      <div class="start-hero">
+        <div class="start-hero-icon">🏫</div>
+        <div class="start-hero-title">RaumScanner</div>
+        <div class="start-hero-sub" id="start-subtitle">Wähle deine Rolle</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
         <button class="role-btn student" onclick="selectRole('student')">
-          <div class="role-icon">👤</div>
+          <div class="role-icon-wrap blue">👤</div>
           <div class="role-text">
             <div class="role-title">Lernende/r</div>
             <div class="role-sub">Einchecken in Räume</div>
           </div>
-          <div style="color:var(--blue);font-size:22px">›</div>
+          <div class="role-arrow blue">›</div>
         </button>
         <button class="role-btn teacher" onclick="selectRole('teacher')">
-          <div class="role-icon">👨‍🏫</div>
+          <div class="role-icon-wrap purple">👨‍🏫</div>
           <div class="role-text">
             <div class="role-title">Lernbegleiter/in</div>
             <div class="role-sub">Übersicht &amp; Verwaltung</div>
           </div>
-          <div style="color:var(--purple);font-size:22px">›</div>
+          <div class="role-arrow purple">›</div>
         </button>
       </div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.6</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -248,7 +265,7 @@
           <div class="current-room" id="s-current-room">—</div>
           <div class="current-since" id="s-current-since">—</div>
         </div>
-        <button onclick="doLogout('student')" style="width:100%;margin-top:8px;padding:12px;background:rgba(255,59,48,.12);color:var(--red);border:1.5px solid rgba(255,59,48,.3);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer">
+        <button onclick="doLogout('student')" style="width:100%;margin-top:8px;padding:12px;background:rgba(255,59,48,.08);color:var(--red);border:1.5px solid rgba(255,59,48,.25);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer">
           Raum verlassen
         </button>
       </div>
@@ -356,7 +373,7 @@
         <div class="empty"><div class="spinner" style="width:28px;height:28px;margin:0 auto"></div></div>
       </div>
       <div style="margin-top:8px">
-        <button class="btn btn-outline-red" onclick="teacherLogout()">Abmelden</button>
+        <button class="btn btn-outline-red" onclick="teacherLogout()">Abmelden &amp; zurück zum Start</button>
       </div>
     </div>
 
@@ -368,7 +385,7 @@
       </div>
       <button class="btn btn-blue" id="t-scan-btn" onclick="openScanner('teacher')" style="font-size:18px;padding:20px">📷 QR-Code scannen &amp; einloggen</button>
       <div id="t-current-card" style="display:none;margin-top:16px">
-        <div class="current-hero" style="background:var(--purple)">
+        <div class="current-hero" style="background:linear-gradient(135deg,var(--purple),#BF5AF2)">
           <div class="current-label">Aktuell eingecheckt</div>
           <div class="current-room" id="t-current-room">—</div>
           <div class="current-since" id="t-current-since">—</div>
@@ -432,15 +449,6 @@
     </div>
 
   </div><!-- /content -->
-
-  <div class="tab-bar" id="main-tab-bar" style="display:none">
-    <div class="tab-item active" id="maintab-student" onclick="switchMainTab('student')">
-      <div class="tab-icon">👤</div><div class="tab-label">Lernende</div>
-    </div>
-    <div class="tab-item" id="maintab-teacher" onclick="switchMainTab('teacher')">
-      <div class="tab-icon">👨‍🏫</div><div class="tab-label">Lernbegleiter</div>
-    </div>
-  </div>
 </div>
 
 <!-- Scanner -->
@@ -475,13 +483,14 @@
 const CFG = {
   base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   folder: 'RaumScanner/checkins',
+  // PIN hier ändern (mind. 6-stellig empfohlen):
   pin: '1234',
   poll: 10000
 };
+// Hinweis: Zugangsdaten sollten idealerweise über einen serverseitigen Proxy gesichert werden.
 const AUTH = 'Basic ' + btoa('da65e470-cdc4-45fb-81f6-7438e75284ce:NfR5L-mA8rH-Lg9rZ-cD6D2-TAPs6');
 
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
-// capacity: Anzahl Plätze (null = kein Limit / persönlicher Raum)
 const ROOMS = [
   { id: 'GRUPPENARBEIT', name: 'Gruppenarbeitsraum', capacity: 20, emoji: '👥' },
   { id: 'LOUNGE',        name: 'Schülerlounge',       capacity: 10, emoji: '🛋️' },
@@ -492,7 +501,7 @@ const ROOMS = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────────
-let mainTab = 'student', studentSubTab = 'checkin', teacherSubTab = 'overview';
+let currentRole = null, studentSubTab = 'checkin', teacherSubTab = 'overview';
 let teacherUnlocked = false, pinVal = '', pollTimer = null, roTimer = null;
 let videoStream = null, scanning = false, scanContext = 'student';
 let currentModalFile = null;
@@ -509,7 +518,7 @@ function ls(k, v) {
   } catch(e) {}
 }
 function lsJson(k) { try { return JSON.parse(ls(k)); } catch(e) { return null; } }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function sanitize(s) {
   return s.toLowerCase()
     .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
@@ -536,26 +545,31 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
 }
+function showBackBtn() {
+  $('back-btn').classList.add('visible');
+  $('nav-version').style.display = 'none';
+}
+function hideBackBtn() {
+  $('back-btn').classList.remove('visible');
+  $('nav-version').style.display = '';
+}
 
 // ── BOOT ────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   $('today-date').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  // Show start screen; pre-fill subtitle if name known
   const savedName = ls('s_name');
   if (savedName) $('start-subtitle').textContent = 'Willkommen zurück, ' + savedName + '!';
   showScreen('screen-start');
   $('subtabs-student').classList.remove('visible');
   $('subtabs-teacher').classList.remove('visible');
-  $('main-tab-bar').style.display = 'none';
+  hideBackBtn();
   $('nav-title').textContent = 'RaumScanner';
 });
 
 // ── STARTSCREEN ──────────────────────────────────────────────────
 function selectRole(role) {
-  $('main-tab-bar').style.display = 'flex';
-  mainTab = role;
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-  $('maintab-' + role).classList.add('active');
+  currentRole = role;
+  showBackBtn();
 
   if (role === 'student') {
     $('subtabs-teacher').classList.remove('visible');
@@ -591,34 +605,14 @@ function selectRole(role) {
 function goHome() {
   stopPoll(); stopRoTimer();
   teacherUnlocked = false;
+  currentRole = null;
   $('subtabs-student').classList.remove('visible');
   $('subtabs-teacher').classList.remove('visible');
-  $('main-tab-bar').style.display = 'none';
+  hideBackBtn();
   const savedName = ls('s_name');
   $('start-subtitle').textContent = savedName ? 'Willkommen zurück, ' + savedName + '!' : 'Wähle deine Rolle';
   showScreen('screen-start');
   $('nav-title').textContent = 'RaumScanner';
-}
-
-// ── MAIN TAB SWITCH ──────────────────────────────────────────────
-function switchMainTab(tab) {
-  mainTab = tab;
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-  $('maintab-' + tab).classList.add('active');
-  $('subtabs-student').classList.remove('visible');
-  $('subtabs-teacher').classList.remove('visible');
-  $('main-tab-bar').style.display = 'flex';
-  stopRoTimer();
-
-  if (tab === 'student') {
-    stopPoll();
-    const name = ls('s_name');
-    if (name) { showStudentSubtabs(); switchStudentTab(studentSubTab); }
-    else { showScreen('screen-s-setup'); $('nav-title').textContent = 'Einrichten'; }
-  } else {
-    if (teacherUnlocked) { showTeacherSubtabs(); switchTeacherTab(teacherSubTab); }
-    else { pinVal=''; updatePinDots(); $('subtabs-teacher').classList.remove('visible'); showScreen('screen-t-pin'); $('nav-title').textContent='Lernbegleiter-Zugang'; }
-  }
 }
 
 // ── STUDENT SUBTABS ──────────────────────────────────────────────
@@ -724,7 +718,7 @@ function refreshTeacherCard() {
 }
 function teacherLogout() {
   teacherUnlocked = false; stopPoll();
-  switchMainTab('student');
+  goHome();
 }
 
 // ── PIN ──────────────────────────────────────────────────────────
@@ -751,13 +745,10 @@ function checkPin() {
 async function openScanner(context) {
   scanContext = context;
   $('scanner-wrap').classList.add('active');
-  if (context === 'teacher') {
-    $('scanner-title').textContent = 'QR-Code scannen';
-    $('scanner-hint').textContent = 'Raum-QR-Code oder Logout-QR-Code';
-  } else {
-    $('scanner-title').textContent = 'QR-Code scannen';
-    $('scanner-hint').textContent = 'Halte die Kamera auf den Raum-QR-Code';
-  }
+  $('scanner-title').textContent = 'QR-Code scannen';
+  $('scanner-hint').textContent = context === 'teacher'
+    ? 'Raum-QR-Code oder Logout-QR-Code'
+    : 'Halte die Kamera auf den Raum-QR-Code';
   let stream = null;
   try { stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}}); }
   catch(e1) { try { stream = await navigator.mediaDevices.getUserMedia({video:true}); } catch(e2) { toast('Kamera nicht verfügbar'); closeScanner(); return; } }
@@ -809,7 +800,6 @@ async function doCheckin(raumId, raumName, ctx) {
     const filename = sanitize(name + '_' + kl) + '.json';
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
 
-    // Read existing file for history
     let existing = null;
     try {
       const r = await fetch(url, {headers:{'Authorization':AUTH}});
@@ -820,7 +810,6 @@ async function doCheckin(raumId, raumName, ctx) {
     const todayStr = today();
     let history = [];
     if (existing && existing.date === todayStr) history = existing.history || [];
-    else history = [];
 
     const entry = {raum_id:raumId, raum_name:raumName, timestamp:ts};
     history.push(entry);
@@ -849,7 +838,7 @@ async function doCheckin(raumId, raumName, ctx) {
 }
 
 function afterSuccess() {
-  if (mainTab === 'teacher') { switchTeacherTab('checkin'); }
+  if (currentRole === 'teacher') { switchTeacherTab('checkin'); }
   else { refreshCurrentCard(); switchStudentTab('checkin'); }
 }
 
@@ -931,7 +920,6 @@ function renderRoomOverview(all) {
   const teachers = active.filter(c => c.type === 'lehrer');
   const students = active.filter(c => c.type !== 'lehrer');
 
-  // Warn banner: student is in a capacity room with no Lernbegleiter?
   const myCurrent = lsJson('s_current');
   const myRoomId  = myCurrent && myCurrent.date === todayStr ? myCurrent.raum_id : null;
   const myRoom    = myRoomId ? ROOMS.find(r => r.id === myRoomId) : null;
@@ -948,7 +936,6 @@ function renderRoomOverview(all) {
     $('warn-banner').classList.remove('active');
   }
 
-  // Only capacity rooms in student overview
   const capacityRooms = ROOMS.filter(r => r.capacity !== null);
   let html = '<div class="sec-header" style="margin-top:4px">Räume mit freien Plätzen</div>';
 
@@ -1009,7 +996,6 @@ function renderDashboard(teachers, students, query) {
   const el = $('t-dashboard');
   const q  = (query||'').toLowerCase().trim();
 
-  // Filter students by search query
   const filteredStudents = q
     ? students.filter(s =>
         s.name.toLowerCase().includes(q) ||
@@ -1032,11 +1018,11 @@ function renderDashboard(teachers, students, query) {
     html += `<div style="text-align:center;font-size:14px;color:var(--text3);margin-bottom:14px">${filteredStudents.length} Treffer für „${esc(q)}"</div>`;
   }
 
-  // Lernbegleiter section (never filtered)
   if (teachers.length && !q) {
     html += `<div class="room-card"><div class="room-header purple">👨‍🏫 <span class="room-title">Lernbegleiter</span><span class="room-count">${teachers.length}</span></div>`;
     teachers.sort((a,b)=>a.name.localeCompare(b.name)).forEach(t => {
-      html += `<div class="person-row" onclick="openHistoryModal('${sanitize(t.name+'_lehrer')}.json','${esc(t.name)}')">
+      const fname = sanitize(t.name+'_lehrer')+'.json';
+      html += `<div class="person-row" data-file="${esc(fname)}" data-name="${esc(t.name)}">
         <div class="avatar avatar-t">${esc(initials(t.name))}</div>
         <div class="card-content"><div class="person-name">${esc(t.name)}</div><div class="person-meta">📍 ${esc(t.raum_name)} · ${fmtTime(t.timestamp)}</div></div>
         <div style="color:var(--text3);font-size:18px">›</div></div>`;
@@ -1044,11 +1030,10 @@ function renderDashboard(teachers, students, query) {
     html += `</div>`;
   }
 
-  // Search result: flat list
   if (q) {
     filteredStudents.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
       const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
-      html += `<div class="room-card"><div class="person-row" onclick="openHistoryModal('${fname}','${esc(s.name)}')">
+      html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-s">${esc(initials(s.name))}</div>
         <div class="card-content">
           <div class="person-name">${esc(s.name)}</div>
@@ -1057,10 +1042,10 @@ function renderDashboard(teachers, students, query) {
         <div style="color:var(--text3);font-size:18px">›</div></div></div>`;
     });
     el.innerHTML = html;
+    bindPersonRows(el);
     return;
   }
 
-  // Separate Lernbüros from other rooms
   const lernbueroIds = new Set(ROOMS.filter(r => r.capacity === null).map(r => r.id));
   const roomMap = {}, lernbueroMap = {};
   filteredStudents.forEach(s => {
@@ -1075,14 +1060,13 @@ function renderDashboard(teachers, students, query) {
   });
   [roomMap, lernbueroMap].forEach(m => Object.values(m).forEach(r => r.students.sort((a,b)=>a.name.localeCompare(b.name))));
 
-  // Helper: render one collapsible room card
   function roomCard(key, icon, color, roomName, count, studentsArr) {
     const cKey = sanitize(key);
     const isCollapsed = collapsedRooms.has(cKey);
     const arrow = isCollapsed ? 'closed' : '';
     const bodyDisplay = isCollapsed ? 'none' : 'block';
     let h = `<div class="room-card">
-      <div class="room-header" style="background:${color}" onclick="toggleRoom('${cKey}')">
+      <div class="room-header" style="background:${color}" onclick="toggleRoom('${esc(cKey)}')">
         ${icon} <span class="room-title">${esc(roomName)}</span>
         <span class="room-count">${count}</span>
         <span class="collapse-arrow ${arrow}">▼</span>
@@ -1090,7 +1074,7 @@ function renderDashboard(teachers, students, query) {
       <div id="rbody-${cKey}" style="display:${bodyDisplay}">`;
     studentsArr.forEach(s => {
       const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
-      h += `<div class="person-row" onclick="openHistoryModal('${fname}','${esc(s.name)}')">
+      h += `<div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-s">${esc(initials(s.name))}</div>
         <div class="card-content"><div class="person-name">${esc(s.name)}</div><div class="person-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div></div>
         <div style="color:var(--text3);font-size:18px">›</div></div>`;
@@ -1099,14 +1083,12 @@ function renderDashboard(teachers, students, query) {
     return h;
   }
 
-  // Capacity rooms with students
   if (Object.keys(roomMap).length) {
     Object.entries(roomMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([k,room]) => {
       html += roomCard(k, '📍', 'var(--blue)', room.name, room.students.length, room.students);
     });
   }
 
-  // Lernbüros with students
   if (Object.keys(lernbueroMap).length) {
     html += `<div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px 4px">Lernbüros</div>`;
     Object.entries(lernbueroMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([k,room]) => {
@@ -1115,6 +1097,16 @@ function renderDashboard(teachers, students, query) {
   }
 
   el.innerHTML = html;
+  bindPersonRows(el);
+}
+
+// Delegate click handling via data attributes (XSS-sicher)
+function bindPersonRows(container) {
+  container.querySelectorAll('.person-row[data-file]').forEach(row => {
+    row.addEventListener('click', () => {
+      openHistoryModal(row.dataset.file, row.dataset.name);
+    });
+  });
 }
 
 // ── SUCHE ────────────────────────────────────────────────────────
