@@ -503,7 +503,7 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
 const CFG = {
-  base: 'https://cloudfiles.senckenberg-runkel.de/raumscanner-proxy.php/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
+  base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   folder: 'RaumScanner/checkins',
   // PIN hier ändern (mind. 6-stellig empfohlen):
   pin: '1234',
@@ -928,7 +928,7 @@ async function getAllCheckins() {
     .filter(h=>h.endsWith('.json'));
   const results = await Promise.all(hrefs.map(async h => {
     try {
-      const fr = await fetch('https://cloudfiles.senckenberg-runkel.de/raumscanner-proxy.php'+h,{headers:{'Authorization':AUTH}});
+      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
       return fr.ok ? fr.json() : null;
     } catch{return null;}
   }));
