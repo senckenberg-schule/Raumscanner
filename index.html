@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.6</title>
+  <title>RaumScanner V1.7</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -152,6 +152,19 @@
     .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
     .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--text3);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center}
     .search-clear.visible{display:flex}
+    /* Fach-Badges (M / D / E) */
+    .fach-badge{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:800;margin-left:5px;vertical-align:middle}
+    .fach-m{background:#E3F0FF;color:var(--blue)}
+    .fach-d{background:#E5F9EC;color:var(--green)}
+    .fach-e{background:#FFF3E0;color:var(--orange)}
+    /* Lernbegleiter-Zeile in Raumübersicht (Lernende-Seite) */
+    .ro-teacher{font-size:12px;color:var(--purple);margin-top:4px;font-weight:500;line-height:1.4}
+    /* Segmented-Control für Fach-Auswahl */
+    .seg-control{display:flex;background:var(--bg);border-radius:var(--r);padding:3px;border:1.5px solid var(--border);gap:3px;box-shadow:var(--shadow)}
+    .seg-btn{flex:1;padding:11px 6px;border:none;border-radius:10px;background:transparent;font-size:15px;font-weight:600;color:var(--text3);cursor:pointer;transition:all .15s}
+    .seg-btn.active{background:var(--card);color:var(--blue);box-shadow:var(--shadow)}
+    /* Nicht-eingecheckt Avatar */
+    .avatar-absent{background:#F2F2F7;color:var(--text3)}
 
     /* ── START SCREEN ── */
     .start-hero{background:linear-gradient(145deg,#007AFF 0%,#5856D6 100%);border-radius:20px;padding:36px 24px 32px;margin-bottom:24px;color:#fff;text-align:center;box-shadow:0 8px 32px rgba(0,122,255,.35)}
@@ -230,7 +243,7 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.6</div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.7</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -352,6 +365,14 @@
         <label class="form-label">Name (z.B. Fr. Bauer)</label>
         <input type="text" class="form-input" id="t-name" placeholder="z.B. Fr. Bauer">
       </div>
+      <div class="form-group">
+        <label class="form-label">Begleitetes Fach</label>
+        <div class="seg-control" id="t-subject-seg">
+          <button class="seg-btn active" data-val="M" onclick="selectSubject(this)">M · Mathe</button>
+          <button class="seg-btn" data-val="D" onclick="selectSubject(this)">D · Deutsch</button>
+          <button class="seg-btn" data-val="E" onclick="selectSubject(this)">E · Englisch</button>
+        </div>
+      </div>
       <button class="btn btn-blue" onclick="saveTeacherSetup()">Weiter →</button>
     </div>
 
@@ -424,12 +445,13 @@
         <div style="padding:14px 16px">
           <div style="font-size:13px;color:var(--text3);line-height:1.6">
             Für die Raumübersicht folgende IDs verwenden:<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">GRUPPENARBEIT</code> · Gruppenarbeitsraum<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LOUNGE</code> · Schülerlounge<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">CAFETERIA</code> · Cafeteria<br>
             <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO1</code> · Lernbüro 1<br>
             <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO2</code> · Lernbüro 2<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO3</code> · Lernbüro 3
+            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO3</code> · Lernbüro 3<br>
+            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">GRUPPENARBEIT</code> · Gruppenarbeitsraum<br>
+            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">AQUARIUM</code> · Aquarium<br>
+            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">CAFETERIA</code> · Cafeteria<br>
+            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LOUNGE</code> · Schülerlounge
           </div>
         </div>
       </div>
@@ -481,7 +503,7 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
 const CFG = {
-  base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
+  base: 'https://cloudfiles.senckenberg-runkel.de/raumscanner-proxy.php/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   folder: 'RaumScanner/checkins',
   // PIN hier ändern (mind. 6-stellig empfohlen):
   pin: '1234',
@@ -492,12 +514,13 @@ const AUTH = 'Basic ' + btoa('da65e470-cdc4-45fb-81f6-7438e75284ce:NfR5L-mA8rH-L
 
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
 const ROOMS = [
-  { id: 'GRUPPENARBEIT', name: 'Gruppenarbeitsraum', capacity: 20, emoji: '👥' },
-  { id: 'LOUNGE',        name: 'Schülerlounge',       capacity: 10, emoji: '🛋️' },
-  { id: 'CAFETERIA',     name: 'Cafeteria',            capacity: 20, emoji: '☕' },
   { id: 'LERNBUERO1',    name: 'Lernbüro 1',           capacity: null, emoji: '📚' },
   { id: 'LERNBUERO2',    name: 'Lernbüro 2',           capacity: null, emoji: '📚' },
   { id: 'LERNBUERO3',    name: 'Lernbüro 3',           capacity: null, emoji: '📚' },
+  { id: 'GRUPPENARBEIT', name: 'Gruppenarbeitsraum',   capacity: 20,   emoji: '👥' },
+  { id: 'AQUARIUM',      name: 'Aquarium',              capacity: 20,   emoji: '🐟' },
+  { id: 'CAFETERIA',     name: 'Cafeteria',             capacity: 20,   emoji: '☕' },
+  { id: 'LOUNGE',        name: 'Schülerlounge',         capacity: 10,   emoji: '🛋️' },
 ];
 
 // ── STATE ────────────────────────────────────────────────────────
@@ -668,15 +691,26 @@ function refreshCurrentCard() {
 }
 
 // ── TEACHER SETUP ────────────────────────────────────────────────
+function selectSubject(btn) {
+  document.querySelectorAll('#t-subject-seg .seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 function saveTeacherSetup() {
   const name = $('t-name').value.trim();
   if (!name) { toast('Bitte Namen eingeben'); return; }
+  const activeBtn = document.querySelector('#t-subject-seg .seg-btn.active');
+  const subject = activeBtn ? activeBtn.dataset.val : 'M';
   ls('t_name', name);
+  ls('t_subject', subject);
   showTeacherSubtabs();
   switchTeacherTab('overview');
 }
 function showSetupTeacher() {
   $('t-name').value = ls('t_name') || '';
+  const savedSubject = ls('t_subject') || 'M';
+  document.querySelectorAll('#t-subject-seg .seg-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === savedSubject);
+  });
   $('subtabs-teacher').classList.remove('visible');
   showScreen('screen-t-setup'); $('nav-title').textContent = 'Einrichten';
 }
@@ -815,6 +849,7 @@ async function doCheckin(raumId, raumName, ctx) {
     history.push(entry);
 
     const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
+    if (isTeacher) { const fach = ls('t_subject'); if (fach) checkin.fach = fach; }
 
     const resp = await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -893,7 +928,7 @@ async function getAllCheckins() {
     .filter(h=>h.endsWith('.json'));
   const results = await Promise.all(hrefs.map(async h => {
     try {
-      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
+      const fr = await fetch('https://cloudfiles.senckenberg-runkel.de/raumscanner-proxy.php'+h,{headers:{'Authorization':AUTH}});
       return fr.ok ? fr.json() : null;
     } catch{return null;}
   }));
@@ -912,6 +947,12 @@ async function loadRoomOverview() {
   }
 }
 
+function teacherBadgeHtml(t) {
+  const f = (t.fach||'').toUpperCase();
+  const cls = f === 'M' ? 'fach-m' : f === 'D' ? 'fach-d' : f === 'E' ? 'fach-e' : '';
+  return esc(t.name) + (f && cls ? `<span class="fach-badge ${cls}">${esc(f)}</span>` : '');
+}
+
 function renderRoomOverview(all) {
   const el = $('room-overview-content');
   if (!el) return;
@@ -920,6 +961,7 @@ function renderRoomOverview(all) {
   const teachers = active.filter(c => c.type === 'lehrer');
   const students = active.filter(c => c.type !== 'lehrer');
 
+  // Warn-Banner: nur bei Kapazitäts-Räumen ohne Lernbegleiter
   const myCurrent = lsJson('s_current');
   const myRoomId  = myCurrent && myCurrent.date === todayStr ? myCurrent.raum_id : null;
   const myRoom    = myRoomId ? ROOMS.find(r => r.id === myRoomId) : null;
@@ -929,40 +971,53 @@ function renderRoomOverview(all) {
       $('warn-banner-title').textContent = '⚠️ ' + myRoom.name + ' – kein Lernbegleiter mehr vor Ort';
       $('warn-banner-msg').textContent   = 'Bitte wechsle jetzt in einen betreuten Raum.';
       $('warn-banner').classList.add('active');
+    } else { $('warn-banner').classList.remove('active'); }
+  } else { $('warn-banner').classList.remove('active'); }
+
+  let html = '<div class="sec-header" style="margin-top:4px">Raumübersicht</div>';
+
+  ROOMS.forEach(room => {
+    const roomTeachers = teachers.filter(t => t.raum_id === room.id);
+    const hasTeacher   = roomTeachers.length > 0;
+    const teacherLine  = roomTeachers.map(t => teacherBadgeHtml(t)).join(', ');
+
+    if (room.capacity !== null) {
+      // Kapazitäts-Raum (Gruppenarbeitsraum, Aquarium, Cafeteria, Lounge)
+      const occupied   = students.filter(s => s.raum_id === room.id).length;
+      const free       = room.capacity - occupied;
+      const pct        = Math.round(occupied / room.capacity * 100);
+      const colorClass = pct >= 80 ? 'red' : pct >= 50 ? 'yellow' : 'green';
+      const locked     = !hasTeacher;
+
+      html += `<div class="ro-card${locked ? ' locked' : ''}">
+        <div class="ro-inner">
+          <div class="ro-icon">${locked ? '🔒' : room.emoji}</div>
+          <div class="ro-info">
+            <div class="ro-name${locked ? ' locked' : ''}">${esc(room.name)}</div>`;
+      if (!locked) {
+        html += `<div class="ro-sub">${occupied} von ${room.capacity} Plätzen belegt</div>
+            <div class="cap-bar"><div class="cap-fill ${colorClass}" style="width:${Math.min(pct,100)}%"></div></div>
+            <div class="ro-teacher">👨‍🏫 ${teacherLine}</div>`;
+      } else {
+        html += `<div class="ro-sub">Kein Lernbegleiter vor Ort</div>`;
+      }
+      html += `</div>`;
+      if (!locked) { html += `<div class="ro-badge ${colorClass}">${free} frei</div>`; }
+      html += `</div></div>`;
+
     } else {
-      $('warn-banner').classList.remove('active');
+      // Lernbüro (ohne Kapazitätslimit)
+      html += `<div class="ro-card">
+        <div class="ro-inner">
+          <div class="ro-icon">${room.emoji}</div>
+          <div class="ro-info">
+            <div class="ro-name">${esc(room.name)}</div>
+            <div class="ro-sub">${hasTeacher
+              ? `<span class="ro-teacher" style="font-size:13px">👨‍🏫 ${teacherLine}</span>`
+              : 'Kein Lernbegleiter vor Ort'}</div>
+          </div>
+        </div></div>`;
     }
-  } else {
-    $('warn-banner').classList.remove('active');
-  }
-
-  const capacityRooms = ROOMS.filter(r => r.capacity !== null);
-  let html = '<div class="sec-header" style="margin-top:4px">Räume mit freien Plätzen</div>';
-
-  capacityRooms.forEach(room => {
-    const hasTeacher = teachers.some(t => t.raum_id === room.id);
-    const occupied   = students.filter(s => s.raum_id === room.id).length;
-    const free       = room.capacity - occupied;
-    const pct        = Math.round(occupied / room.capacity * 100);
-    const colorClass = pct >= 80 ? 'red' : pct >= 50 ? 'yellow' : 'green';
-    const locked     = !hasTeacher;
-
-    html += `<div class="ro-card${locked ? ' locked' : ''}">
-      <div class="ro-inner">
-        <div class="ro-icon">${locked ? '🔒' : room.emoji}</div>
-        <div class="ro-info">
-          <div class="ro-name${locked ? ' locked' : ''}">${esc(room.name)}</div>`;
-    if (!locked) {
-      html += `<div class="ro-sub">${occupied} von ${room.capacity} Plätzen belegt</div>
-          <div class="cap-bar"><div class="cap-fill ${colorClass}" style="width:${Math.min(pct,100)}%"></div></div>`;
-    } else {
-      html += `<div class="ro-sub">Kein Lernbegleiter vor Ort</div>`;
-    }
-    html += `</div>`;
-    if (!locked) {
-      html += `<div class="ro-badge ${colorClass}">${free} frei</div>`;
-    }
-    html += `</div></div>`;
   });
 
   el.innerHTML = html;
@@ -995,6 +1050,7 @@ async function loadDashboard() {
 function renderDashboard(teachers, students, query) {
   const el = $('t-dashboard');
   const q  = (query||'').toLowerCase().trim();
+  const todayStr = today();
 
   const filteredStudents = q
     ? students.filter(s =>
@@ -1004,7 +1060,12 @@ function renderDashboard(teachers, students, query) {
         (s.raum_id||'').toLowerCase().includes(q))
     : students;
 
-  if (!teachers.length && !filteredStudents.length) {
+  // Alle bekannten Lernenden (aus lastCheckins) die NICHT aktiv eingecheckt sind
+  const allKnownStudents = lastCheckins.filter(c => c.type !== 'lehrer');
+  const activeKeys = new Set(students.map(s => s.name + '_' + (s.klasse||'')));
+  const notCheckedIn = allKnownStudents.filter(s => !activeKeys.has(s.name + '_' + (s.klasse||'')));
+
+  if (!teachers.length && !filteredStudents.length && !notCheckedIn.length) {
     el.innerHTML = q
       ? `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Keine Treffer für „${esc(q)}"</div></div>`
       : '<div class="empty"><div class="empty-icon">🏫</div><div class="empty-title">Noch niemand eingecheckt</div><div>Lernende und Lernbegleiter scannen den QR-Code</div></div>';
@@ -1024,7 +1085,10 @@ function renderDashboard(teachers, students, query) {
       const fname = sanitize(t.name+'_lehrer')+'.json';
       html += `<div class="person-row" data-file="${esc(fname)}" data-name="${esc(t.name)}">
         <div class="avatar avatar-t">${esc(initials(t.name))}</div>
-        <div class="card-content"><div class="person-name">${esc(t.name)}</div><div class="person-meta">📍 ${esc(t.raum_name)} · ${fmtTime(t.timestamp)}</div></div>
+        <div class="card-content">
+          <div class="person-name">${teacherBadgeHtml(t)}</div>
+          <div class="person-meta">📍 ${esc(t.raum_name)} · ${fmtTime(t.timestamp)}</div>
+        </div>
         <div style="color:var(--text3);font-size:18px">›</div></div>`;
     });
     html += `</div>`;
@@ -1083,17 +1147,59 @@ function renderDashboard(teachers, students, query) {
     return h;
   }
 
-  if (Object.keys(roomMap).length) {
-    Object.entries(roomMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([k,room]) => {
-      html += roomCard(k, '📍', 'var(--blue)', room.name, room.students.length, room.students);
-    });
-  }
+  // Räume in der definierten Reihenfolge aus ROOMS ausgeben
+  const roomOrder = ROOMS.map(r => r.id);
+  const sortedRoomEntries = Object.entries(roomMap).sort(([a],[b]) => {
+    const ia = roomOrder.indexOf(a), ib = roomOrder.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1; if (ib === -1) return -1;
+    return ia - ib;
+  });
+  sortedRoomEntries.forEach(([k,room]) => {
+    html += roomCard(k, '📍', 'var(--blue)', room.name, room.students.length, room.students);
+  });
 
   if (Object.keys(lernbueroMap).length) {
     html += `<div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px 4px">Lernbüros</div>`;
-    Object.entries(lernbueroMap).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([k,room]) => {
+    const sortedLernbueroEntries = Object.entries(lernbueroMap).sort(([a],[b]) => {
+      const ia = roomOrder.indexOf(a), ib = roomOrder.indexOf(b);
+      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      if (ia === -1) return 1; if (ib === -1) return -1;
+      return ia - ib;
+    });
+    sortedLernbueroEntries.forEach(([k,room]) => {
       html += roomCard(k, '📚', 'var(--green)', room.name, room.students.length, room.students);
     });
+  }
+
+  // ── NICHT EINGECHECKT ──────────────────────────────────────────
+  if (notCheckedIn.length > 0) {
+    const cKey = 'not-checked-in';
+    const isCollapsed = collapsedRooms.has(cKey);
+    const arrow = isCollapsed ? 'closed' : '';
+    const bodyDisplay = isCollapsed ? 'none' : 'block';
+    html += `<div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px 4px">Übersicht</div>`;
+    html += `<div class="room-card">
+      <div class="room-header" style="background:#636366;cursor:pointer;user-select:none" onclick="toggleRoom('${cKey}')">
+        🏠 <span class="room-title">Nicht eingecheckt</span>
+        <span class="room-count">${notCheckedIn.length}</span>
+        <span class="collapse-arrow ${arrow}">▼</span>
+      </div>
+      <div id="rbody-${cKey}" style="display:${bodyDisplay}">`;
+    notCheckedIn.sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+      const fname = sanitize(s.name + '_' + (s.klasse||'')) + '.json';
+      const zuletzt = s.date === todayStr
+        ? 'Heute ausgeloggt · ' + fmtTime(s.timestamp)
+        : (s.date ? 'Zuletzt ' + new Date(s.date).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'}) : 'Noch nie eingecheckt');
+      html += `<div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
+        <div class="avatar avatar-absent">${esc(initials(s.name))}</div>
+        <div class="card-content">
+          <div class="person-name" style="color:var(--text2)">${esc(s.name)}</div>
+          <div class="person-meta">Klasse ${esc(s.klasse)} · ${zuletzt}</div>
+        </div>
+        <div style="color:var(--text3);font-size:18px">›</div></div>`;
+    });
+    html += `</div></div>`;
   }
 
   el.innerHTML = html;
