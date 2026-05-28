@@ -457,7 +457,7 @@ const CFG = {
   folder: 'RaumScanner/checkins',
   // PIN hier ändern (mind. 6-stellig empfohlen):
   pin: '1234',
-  poll: 10000
+  poll: 30000
 };
 // Hinweis: Zugangsdaten sollten idealerweise über einen serverseitigen Proxy gesichert werden.
 const AUTH = 'Basic ' + btoa('da65e470-cdc4-45fb-81f6-7438e75284ce:NfR5L-mA8rH-Lg9rZ-cD6D2-TAPs6');
@@ -480,6 +480,7 @@ let videoStream = null, scanning = false, scanContext = 'student';
 let currentModalFile = null;
 let lastCheckins = [], searchQuery = '';
 const openRooms = new Set(); // Schlüssel in diesem Set = aufgeklappt; Standard = eingeklappt
+const fileCache = new Map(); // href → {data, lm} – Delta-Cache für PROPFIND
 
 // ── UTILS ────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -803,9 +804,6 @@ async function doCheckin(raumId, raumName, ctx) {
     const resp = await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
-    // summary.json aktualisieren (1 zentrales Dokument für alle Polls)
-    await updateSummary(sanitize(name+'_'+kl), checkin);
-
     if (isTeacher) ls('t_current', checkin);
     else           ls('s_current', checkin);
 
@@ -844,7 +842,6 @@ async function doLogout(ctx) {
     if (existing) {
       existing.raum_id = null; existing.raum_name = 'Ausgeloggt'; existing.timestamp = new Date().toISOString();
       await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(existing,null,2)});
-      await updateSummary(sanitize(name+'_'+kl), existing);
     }
     if (isTeacher) { ls('t_current', null); refreshTeacherCard(); toast('Ausgeloggt'); }
     else { ls('s_current', null); refreshCurrentCard(); toast('Ausgeloggt'); loadRoomOverview(); }
@@ -860,8 +857,6 @@ async function manualLogout() {
     if (data) {
       data.raum_id = null; data.raum_name = 'Ausgeloggt'; data.timestamp = new Date().toISOString();
       await fetch(url,{method:'PUT',headers:{'Authorization':AUTH,'Content-Type':'application/json'},body:JSON.stringify(data,null,2)});
-      const pKey = currentModalFile.replace('.json','');
-      await updateSummary(pKey, data);
     }
     toast('Lernende ausgeloggt'); closeModal(); loadDashboard();
   } catch(e) { toast('Fehler'); }
@@ -874,54 +869,35 @@ async function ensureFolder() {
   }
 }
 
-// Zentrale summary.json lesen (1 Anfrage statt N+1) ──────────────
+// Delta-Cache: nur geänderte Dateien neu laden (PROPFIND + selektive GETs) ──
 async function getAllCheckins() {
-  const summaryUrl = CFG.base + '/' + CFG.folder + '/summary.json';
-  try {
-    const r = await fetch(summaryUrl, {headers:{'Authorization':AUTH}});
-    if (r.ok) {
-      const s = await r.json();
-      if (s && s.checkins) return Object.values(s.checkins);
-    }
-  } catch(e) {}
-  // Fallback: altes PROPFIND-Verfahren (beim ersten Start oder Fehler)
-  return getAllCheckinsLegacy();
-}
-
-// Fallback: einzelne Dateien laden (gebündelt, max. 8 parallel) ──
-async function getAllCheckinsLegacy() {
   const url = CFG.base + '/' + CFG.folder + '/';
-  const r = await fetch(url, {method:'PROPFIND', headers:{'Authorization':AUTH,'Depth':'1','Content-Type':'application/xml'}, body:'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'});
-  if (!r.ok) { if(r.status===404){await ensureFolder();return[];} throw new Error('PROPFIND '+r.status); }
-  const doc = new DOMParser().parseFromString(await r.text(),'application/xml');
-  const hrefs = Array.from(doc.querySelectorAll('response href'))
-    .map(e=>decodeURIComponent(e.textContent.trim()))
-    .filter(h=>h.endsWith('.json') && !h.endsWith('summary.json'));
-  const results = [];
-  for (let i = 0; i < hrefs.length; i += 8) {
-    const chunk = hrefs.slice(i, i + 8);
-    const part = await Promise.all(chunk.map(async h => {
-      try {
-        const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
-        return fr.ok ? fr.json() : null;
-      } catch{return null;}
-    }));
-    results.push(...part);
-  }
-  return results.filter(Boolean);
-}
+  const r = await fetch(url, {
+    method: 'PROPFIND',
+    headers: {'Authorization':AUTH, 'Depth':'1', 'Content-Type':'application/xml'},
+    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
+  });
+  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
+  const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
+  const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
+    const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
+    const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
+    return {href, lm};
+  }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
 
-// summary.json aktualisieren (nach jedem Check-in / Logout) ──────
-async function updateSummary(personKey, data) {
-  const summaryUrl = CFG.base + '/' + CFG.folder + '/summary.json';
-  let summary = {checkins:{}};
-  try {
-    const r = await fetch(summaryUrl, {headers:{'Authorization':AUTH}});
-    if (r.ok) { const s = await r.json(); if (s && s.checkins) summary = s; }
-  } catch(e) {}
-  if (data === null) { delete summary.checkins[personKey]; }
-  else { summary.checkins[personKey] = data; }
-  await fetch(summaryUrl, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(summary)}).catch(()=>{});
+  // Nur Dateien laden, die neu oder geändert sind
+  const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
+
+  for (let i = 0; i < toFetch.length; i += 6) {
+    const chunk = toFetch.slice(i, i + 6);
+    await Promise.all(chunk.map(async f => {
+      try {
+        const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev' + f.href, {headers:{'Authorization':AUTH}});
+        if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
+      } catch(e) {}
+    }));
+  }
+  return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
 }
 
 // ── RAUMÜBERSICHT (Lernende-Seite) ───────────────────────────────
@@ -1032,9 +1008,14 @@ function renderRoomOverview(all) {
 
 function startRoTimer() {
   stopRoTimer();
-  roTimer = setInterval(() => {
+  // Jitter: 0–8 s Versatz, damit 120 Geräte nicht gleichzeitig anfragen
+  const jitter = Math.random() * 8000;
+  setTimeout(() => {
     if ($('screen-s-checkin').classList.contains('active')) loadRoomOverview();
-  }, 10000);
+    roTimer = setInterval(() => {
+      if ($('screen-s-checkin').classList.contains('active')) loadRoomOverview();
+    }, 10000);
+  }, jitter);
 }
 function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 
@@ -1282,8 +1263,34 @@ function toggleRoom(key) {
     if (arrow) arrow.classList.remove('closed');
   }
 }
-function startPoll() { stopPoll(); pollTimer = setInterval(()=>{ if($('screen-t-overview').classList.contains('active')) loadDashboard(); }, CFG.poll); }
+function startPoll() {
+  stopPoll();
+  // Jitter: 0–8 s Versatz, damit alle Lernbegleiter-Geräte gestaffelt anfragen
+  const jitter = Math.random() * 8000;
+  setTimeout(() => {
+    if ($('screen-t-overview').classList.contains('active')) loadDashboard();
+    pollTimer = setInterval(() => { if ($('screen-t-overview').classList.contains('active')) loadDashboard(); }, CFG.poll);
+  }, jitter);
+}
 function stopPoll()  { if(pollTimer){clearInterval(pollTimer);pollTimer=null;} }
+
+// ── PAGE VISIBILITY – Polling pausieren wenn App im Hintergrund ──
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    // Bildschirm aus oder App in Hintergrund → Timer stoppen
+    stopPoll();
+    stopRoTimer();
+  } else {
+    // App wieder sichtbar → sofort nachladen + Timer neu starten
+    if (currentRole === 'teacher' && teacherUnlocked) {
+      if ($('screen-t-overview').classList.contains('active')) loadDashboard();
+      startPoll();
+    } else if (currentRole === 'student') {
+      if ($('screen-s-checkin').classList.contains('active')) loadRoomOverview();
+      startRoTimer();
+    }
+  }
+});
 
 // ── HISTORY MODAL ─────────────────────────────────────────────────
 async function openHistoryModal(filename, personName) {
