@@ -455,12 +455,12 @@
 const CFG = {
   base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   folder: 'RaumScanner/checkins',
-  // PIN hier ändern (mind. 6-stellig empfohlen):
-  pin: '1234',
-  poll: 30000
+  summaryFile: 'RaumScanner/checkins/summary.json',
+  poll:   30000, // Lehrer-Dashboard: alle 30 Sek.
+  roPoll: 30000, // Raumübersicht Schüler: alle 30 Sek. (war 10 Sek.)
 };
-// Hinweis: Zugangsdaten sollten idealerweise über einen serverseitigen Proxy gesichert werden.
-const AUTH = 'Basic ' + btoa('da65e470-cdc4-45fb-81f6-7438e75284ce:NfR5L-mA8rH-Lg9rZ-cD6D2-TAPs6');
+const WORKER = 'https://nextcloud-proxy.stbauer81.workers.dev';
+// Zugangsdaten und PIN liegen jetzt nur im Cloudflare Worker (nicht mehr im Client)
 
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
 const ROOMS = [
@@ -480,7 +480,6 @@ let videoStream = null, scanning = false, scanContext = 'student';
 let currentModalFile = null;
 let lastCheckins = [], searchQuery = '';
 const openRooms = new Set(); // Schlüssel in diesem Set = aufgeklappt; Standard = eingeklappt
-const fileCache = new Map(); // href → {data, lm} – Delta-Cache für PROPFIND
 
 // ── UTILS ────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -716,13 +715,21 @@ function pinClear() { pinVal = ''; updatePinDots(); }
 function updatePinDots() {
   for (let i=0;i<4;i++) $('pd'+i).classList.toggle('filled', i < pinVal.length);
 }
-function checkPin() {
-  if (pinVal === CFG.pin) {
-    teacherUnlocked = true;
-    const tname = ls('t_name');
-    if (tname) { showTeacherSubtabs(); switchTeacherTab('overview'); }
-    else { $('subtabs-teacher').classList.remove('visible'); showScreen('screen-t-setup'); $('nav-title').textContent='Einrichten'; }
-  } else { toast('Falscher PIN'); pinVal=''; updatePinDots(); }
+async function checkPin() {
+  try {
+    const r = await fetch(WORKER + '/api/verify-pin', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({pin: pinVal})
+    });
+    const data = await r.json();
+    if (data.ok) {
+      teacherUnlocked = true;
+      const tname = ls('t_name');
+      if (tname) { showTeacherSubtabs(); switchTeacherTab('overview'); }
+      else { $('subtabs-teacher').classList.remove('visible'); showScreen('screen-t-setup'); $('nav-title').textContent='Einrichten'; }
+    } else { toast('Falscher PIN'); pinVal=''; updatePinDots(); }
+  } catch(e) { toast('Verbindungsfehler'); pinVal=''; updatePinDots(); }
 }
 
 // ── SCANNER ──────────────────────────────────────────────────────
@@ -780,13 +787,12 @@ async function doCheckin(raumId, raumName, ctx) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-w" style="width:18px;height:18px"></div> Wird gespeichert...'; }
 
   try {
-    await ensureFolder();
     const filename = sanitize(name + '_' + kl) + '.json';
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
 
     let existing = null;
     try {
-      const r = await fetch(url, {headers:{'Authorization':AUTH}});
+      const r = await fetch(url);
       if (r.ok) existing = await r.json();
     } catch(e) {}
 
@@ -801,11 +807,12 @@ async function doCheckin(raumId, raumName, ctx) {
     const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
     if (isTeacher) { const fach = ls('t_subject'); if (fach) checkin.fach = fach; }
 
-    const resp = await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
+    const resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
     if (isTeacher) ls('t_current', checkin);
     else           ls('s_current', checkin);
+    await updateSummary(checkin).catch(()=>{});
 
     $('suc-title').textContent = isTeacher ? 'Eingeloggt!' : 'Eingecheckt!';
     $('suc-room').textContent = '📍 ' + raumName;
@@ -838,10 +845,11 @@ async function doLogout(ctx) {
     const filename = sanitize(name + '_' + kl) + '.json';
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
     let existing = null;
-    try { const r = await fetch(url,{headers:{'Authorization':AUTH}}); if(r.ok) existing = await r.json(); } catch(e){}
+    try { const r = await fetch(url); if(r.ok) existing = await r.json(); } catch(e){}
     if (existing) {
       existing.raum_id = null; existing.raum_name = 'Ausgeloggt'; existing.timestamp = new Date().toISOString();
-      await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(existing,null,2)});
+      await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing,null,2)});
+      await updateSummary(existing).catch(()=>{});
     }
     if (isTeacher) { ls('t_current', null); refreshTeacherCard(); toast('Ausgeloggt'); }
     else { ls('s_current', null); refreshCurrentCard(); toast('Ausgeloggt'); loadRoomOverview(); }
@@ -853,10 +861,11 @@ async function manualLogout() {
   const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(currentModalFile);
   try {
     let data = null;
-    const r = await fetch(url,{headers:{'Authorization':AUTH}}); if(r.ok) data = await r.json();
+    const r = await fetch(url); if(r.ok) data = await r.json();
     if (data) {
       data.raum_id = null; data.raum_name = 'Ausgeloggt'; data.timestamp = new Date().toISOString();
-      await fetch(url,{method:'PUT',headers:{'Authorization':AUTH,'Content-Type':'application/json'},body:JSON.stringify(data,null,2)});
+      await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data,null,2)});
+      await updateSummary(data).catch(()=>{});
     }
     toast('Lernende ausgeloggt'); closeModal(); loadDashboard();
   } catch(e) { toast('Fehler'); }
@@ -865,39 +874,44 @@ async function manualLogout() {
 // ── WEBDAV ───────────────────────────────────────────────────────
 async function ensureFolder() {
   for (const path of ['RaumScanner', CFG.folder]) {
-    await fetch(CFG.base+'/'+path, {method:'MKCOL',headers:{'Authorization':AUTH}}).catch(()=>{});
+    await fetch(CFG.base + '/' + path, {method:'MKCOL'}).catch(()=>{});
   }
 }
 
-// Delta-Cache: nur geänderte Dateien neu laden (PROPFIND + selektive GETs) ──
-async function getAllCheckins() {
-  const url = CFG.base + '/' + CFG.folder + '/';
-  const r = await fetch(url, {
-    method: 'PROPFIND',
-    headers: {'Authorization':AUTH, 'Depth':'1', 'Content-Type':'application/xml'},
-    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
-  });
-  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
-  const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
-  const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
-    const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
-    const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
-    return {href, lm};
-  }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
+// Nur summary.json lesen → 1 Request statt PROPFIND + N GETs ─────
+async function getSummary() {
+  const url = CFG.base + '/' + CFG.summaryFile;
+  const r = await fetch(url);
+  if (r.status === 404) return [];
+  if (!r.ok) throw new Error('GET summary ' + r.status);
+  const data = await r.json();
+  if (data.date !== today()) return [];
+  return data.checkins || [];
+}
 
-  // Nur Dateien laden, die neu oder geändert sind
-  const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
-
-  for (let i = 0; i < toFetch.length; i += 6) {
-    const chunk = toFetch.slice(i, i + 6);
-    await Promise.all(chunk.map(async f => {
-      try {
-        const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev' + f.href, {headers:{'Authorization':AUTH}});
-        if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
-      } catch(e) {}
-    }));
-  }
-  return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
+// Summary nach Check-in / Logout aktualisieren ────────────────────
+async function updateSummary(entry) {
+  const url = CFG.base + '/' + CFG.summaryFile;
+  const todayStr = today();
+  let existing = {date: todayStr, updated: '', checkins: []};
+  try {
+    const r = await fetch(url);
+    if (r.ok) {
+      const data = await r.json();
+      if (data.date === todayStr) existing = data;
+    }
+  } catch {}
+  const key = sanitize(entry.name + '_' + (entry.klasse || ''));
+  const idx = existing.checkins.findIndex(c => sanitize(c.name + '_' + (c.klasse || '')) === key);
+  const se = {
+    type: entry.type, name: entry.name, klasse: entry.klasse,
+    raum_id: entry.raum_id || null, raum_name: entry.raum_name || '',
+    timestamp: entry.timestamp, date: entry.date,
+    ...(entry.fach ? {fach: entry.fach} : {})
+  };
+  if (idx >= 0) existing.checkins[idx] = se; else existing.checkins.push(se);
+  existing.updated = new Date().toISOString();
+  await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing)});
 }
 
 // ── RAUMÜBERSICHT (Lernende-Seite) ───────────────────────────────
@@ -905,7 +919,7 @@ async function loadRoomOverview() {
   const el = $('room-overview-content');
   if (!el) return;
   try {
-    const all = await getAllCheckins();
+    const all = await getSummary();
     renderRoomOverview(all);
   } catch(e) {
     el.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:12px 4px;text-align:center">⚠️ Raumübersicht konnte nicht geladen werden</div>';
@@ -1014,7 +1028,7 @@ function startRoTimer() {
     if ($('screen-s-checkin').classList.contains('active')) loadRoomOverview();
     roTimer = setInterval(() => {
       if ($('screen-s-checkin').classList.contains('active')) loadRoomOverview();
-    }, 10000);
+    }, CFG.roPoll);
   }, jitter);
 }
 function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
@@ -1023,7 +1037,7 @@ function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 let dashboardErrorCount = 0;
 async function loadDashboard() {
   try {
-    const all = await getAllCheckins();
+    const all = await getSummary();
     lastCheckins = all;
     dashboardErrorCount = 0;
     const todayStr = today();
@@ -1300,7 +1314,7 @@ async function openHistoryModal(filename, personName) {
   $('history-modal').classList.add('active');
   try {
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
-    const r = await fetch(url, {headers:{'Authorization':AUTH}});
+    const r = await fetch(url);
     if (!r.ok) throw new Error();
     const data = await r.json();
     const hist = (data.history || []).slice().reverse();
@@ -1330,11 +1344,19 @@ async function loadTodayView() {
   $('today-content').innerHTML = '<div class="empty"><div class="spinner" style="width:28px;height:28px;margin:0 auto"></div></div>';
   try {
     const name = ls('s_name'), kl = ls('s_class');
-    const all = await getAllCheckins();
     const todayStr = today();
 
-    const own = all.find(c => (sanitize(c.name+'_'+(c.klasse||''))) === sanitize(name+'_'+kl));
+    // Eigene History aus Einzeldatei (summary.json enthält kein history-Array)
+    const filename = sanitize(name + '_' + kl) + '.json';
+    let own = null;
+    try {
+      const fr = await fetch(CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename));
+      if (fr.ok) own = await fr.json();
+    } catch {}
     const hist = own && own.date === todayStr ? (own.history||[]).slice().reverse() : [];
+
+    // Lernbegleiter aus summary.json (1 Request)
+    const all = await getSummary();
     const activeTeachers = all.filter(c => c.type === 'lehrer' && c.date === todayStr && c.raum_id);
 
     let html = '';
