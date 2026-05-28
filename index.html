@@ -803,6 +803,9 @@ async function doCheckin(raumId, raumName, ctx) {
     const resp = await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
+    // summary.json aktualisieren (1 zentrales Dokument für alle Polls)
+    await updateSummary(sanitize(name+'_'+kl), checkin);
+
     if (isTeacher) ls('t_current', checkin);
     else           ls('s_current', checkin);
 
@@ -841,6 +844,7 @@ async function doLogout(ctx) {
     if (existing) {
       existing.raum_id = null; existing.raum_name = 'Ausgeloggt'; existing.timestamp = new Date().toISOString();
       await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(existing,null,2)});
+      await updateSummary(sanitize(name+'_'+kl), existing);
     }
     if (isTeacher) { ls('t_current', null); refreshTeacherCard(); toast('Ausgeloggt'); }
     else { ls('s_current', null); refreshCurrentCard(); toast('Ausgeloggt'); loadRoomOverview(); }
@@ -856,6 +860,8 @@ async function manualLogout() {
     if (data) {
       data.raum_id = null; data.raum_name = 'Ausgeloggt'; data.timestamp = new Date().toISOString();
       await fetch(url,{method:'PUT',headers:{'Authorization':AUTH,'Content-Type':'application/json'},body:JSON.stringify(data,null,2)});
+      const pKey = currentModalFile.replace('.json','');
+      await updateSummary(pKey, data);
     }
     toast('Lernende ausgeloggt'); closeModal(); loadDashboard();
   } catch(e) { toast('Fehler'); }
@@ -867,21 +873,55 @@ async function ensureFolder() {
     await fetch(CFG.base+'/'+path, {method:'MKCOL',headers:{'Authorization':AUTH}}).catch(()=>{});
   }
 }
+
+// Zentrale summary.json lesen (1 Anfrage statt N+1) ──────────────
 async function getAllCheckins() {
+  const summaryUrl = CFG.base + '/' + CFG.folder + '/summary.json';
+  try {
+    const r = await fetch(summaryUrl, {headers:{'Authorization':AUTH}});
+    if (r.ok) {
+      const s = await r.json();
+      if (s && s.checkins) return Object.values(s.checkins);
+    }
+  } catch(e) {}
+  // Fallback: altes PROPFIND-Verfahren (beim ersten Start oder Fehler)
+  return getAllCheckinsLegacy();
+}
+
+// Fallback: einzelne Dateien laden (gebündelt, max. 8 parallel) ──
+async function getAllCheckinsLegacy() {
   const url = CFG.base + '/' + CFG.folder + '/';
   const r = await fetch(url, {method:'PROPFIND', headers:{'Authorization':AUTH,'Depth':'1','Content-Type':'application/xml'}, body:'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'});
   if (!r.ok) { if(r.status===404){await ensureFolder();return[];} throw new Error('PROPFIND '+r.status); }
   const doc = new DOMParser().parseFromString(await r.text(),'application/xml');
   const hrefs = Array.from(doc.querySelectorAll('response href'))
     .map(e=>decodeURIComponent(e.textContent.trim()))
-    .filter(h=>h.endsWith('.json'));
-  const results = await Promise.all(hrefs.map(async h => {
-    try {
-      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
-      return fr.ok ? fr.json() : null;
-    } catch{return null;}
-  }));
+    .filter(h=>h.endsWith('.json') && !h.endsWith('summary.json'));
+  const results = [];
+  for (let i = 0; i < hrefs.length; i += 8) {
+    const chunk = hrefs.slice(i, i + 8);
+    const part = await Promise.all(chunk.map(async h => {
+      try {
+        const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
+        return fr.ok ? fr.json() : null;
+      } catch{return null;}
+    }));
+    results.push(...part);
+  }
   return results.filter(Boolean);
+}
+
+// summary.json aktualisieren (nach jedem Check-in / Logout) ──────
+async function updateSummary(personKey, data) {
+  const summaryUrl = CFG.base + '/' + CFG.folder + '/summary.json';
+  let summary = {checkins:{}};
+  try {
+    const r = await fetch(summaryUrl, {headers:{'Authorization':AUTH}});
+    if (r.ok) { const s = await r.json(); if (s && s.checkins) summary = s; }
+  } catch(e) {}
+  if (data === null) { delete summary.checkins[personKey]; }
+  else { summary.checkins[personKey] = data; }
+  await fetch(summaryUrl, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(summary)}).catch(()=>{});
 }
 
 // ── RAUMÜBERSICHT (Lernende-Seite) ───────────────────────────────
@@ -999,10 +1039,12 @@ function startRoTimer() {
 function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 
 // ── LERNBEGLEITER DASHBOARD ──────────────────────────────────────
+let dashboardErrorCount = 0;
 async function loadDashboard() {
   try {
     const all = await getAllCheckins();
     lastCheckins = all;
+    dashboardErrorCount = 0;
     const todayStr = today();
     const active   = all.filter(c => c.date === todayStr && c.raum_id);
     const teachers = active.filter(c => c.type === 'lehrer');
@@ -1010,7 +1052,14 @@ async function loadDashboard() {
     renderDashboard(teachers, students, searchQuery);
     $('t-last-update').textContent = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   } catch(e) {
-    $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div>${esc(e.message)}</div></div>`;
+    dashboardErrorCount++;
+    if (dashboardErrorCount >= 3 || !lastCheckins.length) {
+      // Nach 3 Fehlern in Folge oder wenn noch keine Daten: Fehlermeldung
+      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Wird erneut versucht …</div></div>`;
+    } else {
+      // Alte Daten weiter anzeigen, nur Status aktualisieren
+      $('t-last-update').textContent = '⚠️ Verbindung …';
+    }
   }
 }
 
