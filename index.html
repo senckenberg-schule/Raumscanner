@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.7</title>
+  <title>RaumScanner V1.8</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -155,14 +155,17 @@
     /* Fach-Badges (M / D / E) */
     .fach-badge{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:800;margin-left:5px;vertical-align:middle}
     .fach-m{background:#E3F0FF;color:var(--blue)}
-    .fach-d{background:#E5F9EC;color:var(--green)}
-    .fach-e{background:#FFF3E0;color:var(--orange)}
+    .fach-d{background:#FFE5E5;color:var(--red)}
+    .fach-e{background:#FFFACC;color:#997700}
     /* Lernbegleiter-Zeile in Raumübersicht (Lernende-Seite) */
     .ro-teacher{font-size:12px;color:var(--purple);margin-top:4px;font-weight:500;line-height:1.4}
-    /* Segmented-Control für Fach-Auswahl */
+    /* Segmented-Control für Fach-Auswahl (Mehrfachauswahl) */
     .seg-control{display:flex;background:var(--bg);border-radius:var(--r);padding:3px;border:1.5px solid var(--border);gap:3px;box-shadow:var(--shadow)}
     .seg-btn{flex:1;padding:11px 6px;border:none;border-radius:10px;background:transparent;font-size:15px;font-weight:600;color:var(--text3);cursor:pointer;transition:all .15s}
-    .seg-btn.active{background:var(--card);color:var(--blue);box-shadow:var(--shadow)}
+    .seg-btn.active{background:var(--card);box-shadow:var(--shadow)}
+    .seg-btn[data-val="M"].active{color:var(--blue)}
+    .seg-btn[data-val="D"].active{color:var(--red)}
+    .seg-btn[data-val="E"].active{color:#997700}
     /* Nicht-eingecheckt Avatar */
     .avatar-absent{background:#F2F2F7;color:var(--text3)}
 
@@ -213,7 +216,6 @@
   <div class="subtab-bar" id="subtabs-teacher">
     <div class="subtab active" id="ttab-overview" onclick="switchTeacherTab('overview')">🏫 Übersicht</div>
     <div class="subtab" id="ttab-checkin" onclick="switchTeacherTab('checkin')">📷 Einloggen</div>
-    <div class="subtab" id="ttab-qr" onclick="switchTeacherTab('qr')">🔲 QR-Codes</div>
   </div>
 
   <div class="content">
@@ -243,7 +245,7 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.7</div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.8</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -418,57 +420,6 @@
       <button class="btn btn-outline" onclick="showSetupTeacher()" style="margin-top:8px">✏️ Namen ändern</button>
     </div>
 
-    <!-- ── LERNBEGLEITER QR GENERATOR ── -->
-    <div class="screen" id="screen-t-qr">
-      <div class="sec-header">QR-Code für einen Raum</div>
-      <div class="card">
-        <div style="padding:16px">
-          <div class="form-group">
-            <label class="form-label">Raum-ID (kurz, ohne Leerzeichen)</label>
-            <input type="text" class="form-input" id="qr-id" placeholder="z.B. GRUPPENARBEIT oder LERNBUERO1">
-          </div>
-          <div class="form-group" style="margin-bottom:12px">
-            <label class="form-label">Raum-Name (vollständig)</label>
-            <input type="text" class="form-input" id="qr-name" placeholder="z.B. Gruppenarbeitsraum">
-          </div>
-          <button class="btn btn-blue" onclick="generateRoomQR()">QR-Code erstellen</button>
-        </div>
-        <div class="qr-result" id="qr-room-result">
-          <canvas id="qr-room-canvas" style="border-radius:8px"></canvas>
-          <div style="font-size:13px;color:var(--text3);margin-top:8px;text-align:center" id="qr-room-label"></div>
-          <button class="btn btn-outline" onclick="downloadQR('qr-room-canvas','qr-room-name')" style="margin-top:12px;max-width:200px">💾 Als Bild speichern</button>
-        </div>
-      </div>
-
-      <div class="sec-header">Hinweis zu Raum-IDs</div>
-      <div class="card">
-        <div style="padding:14px 16px">
-          <div style="font-size:13px;color:var(--text3);line-height:1.6">
-            Für die Raumübersicht folgende IDs verwenden:<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO1</code> · Lernbüro 1<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO2</code> · Lernbüro 2<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LERNBUERO3</code> · Lernbüro 3<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">GRUPPENARBEIT</code> · Gruppenarbeitsraum<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">AQUARIUM</code> · Aquarium<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">CAFETERIA</code> · Cafeteria<br>
-            <code style="font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px">LOUNGE</code> · Schülerlounge
-          </div>
-        </div>
-      </div>
-
-      <div class="sec-header">Logout-QR-Code</div>
-      <div class="card">
-        <div style="padding:16px">
-          <div style="font-size:14px;color:var(--text3);margin-bottom:12px">Diesen QR-Code an der Tür aufhängen – Lernende scannen ihn zum Ausloggen.</div>
-          <button class="btn btn-outline" onclick="generateLogoutQR()">Logout-QR-Code erstellen</button>
-        </div>
-        <div class="qr-result" id="qr-logout-result">
-          <canvas id="qr-logout-canvas" style="border-radius:8px"></canvas>
-          <div style="font-size:13px;color:var(--text3);margin-top:8px">Ausloggen</div>
-          <button class="btn btn-outline" onclick="downloadQR('qr-logout-canvas','Ausloggen')" style="margin-top:12px;max-width:200px">💾 Als Bild speichern</button>
-        </div>
-      </div>
-    </div>
 
   </div><!-- /content -->
 </div>
@@ -499,7 +450,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
 const CFG = {
@@ -529,7 +479,7 @@ let teacherUnlocked = false, pinVal = '', pollTimer = null, roTimer = null;
 let videoStream = null, scanning = false, scanContext = 'student';
 let currentModalFile = null;
 let lastCheckins = [], searchQuery = '';
-const collapsedRooms = new Set();
+const openRooms = new Set(); // Schlüssel in diesem Set = aufgeklappt; Standard = eingeklappt
 
 // ── UTILS ────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -692,14 +642,16 @@ function refreshCurrentCard() {
 
 // ── TEACHER SETUP ────────────────────────────────────────────────
 function selectSubject(btn) {
-  document.querySelectorAll('#t-subject-seg .seg-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  btn.classList.toggle('active');
+  // Mindestens ein Fach muss ausgewählt sein
+  const anyActive = document.querySelectorAll('#t-subject-seg .seg-btn.active').length;
+  if (anyActive === 0) btn.classList.add('active');
 }
 function saveTeacherSetup() {
   const name = $('t-name').value.trim();
   if (!name) { toast('Bitte Namen eingeben'); return; }
-  const activeBtn = document.querySelector('#t-subject-seg .seg-btn.active');
-  const subject = activeBtn ? activeBtn.dataset.val : 'M';
+  const activeBtns = [...document.querySelectorAll('#t-subject-seg .seg-btn.active')];
+  const subject = activeBtns.length ? activeBtns.map(b => b.dataset.val).join(',') : 'M';
   ls('t_name', name);
   ls('t_subject', subject);
   showTeacherSubtabs();
@@ -707,9 +659,9 @@ function saveTeacherSetup() {
 }
 function showSetupTeacher() {
   $('t-name').value = ls('t_name') || '';
-  const savedSubject = ls('t_subject') || 'M';
+  const savedSubjects = (ls('t_subject') || 'M').split(',');
   document.querySelectorAll('#t-subject-seg .seg-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === savedSubject);
+    b.classList.toggle('active', savedSubjects.includes(b.dataset.val));
   });
   $('subtabs-teacher').classList.remove('visible');
   showScreen('screen-t-setup'); $('nav-title').textContent = 'Einrichten';
@@ -719,20 +671,17 @@ function showSetupTeacher() {
 function showTeacherSubtabs() { $('subtabs-teacher').classList.add('visible'); }
 function switchTeacherTab(tab) {
   teacherSubTab = tab;
-  ['overview','checkin','qr'].forEach(t => { $('ttab-'+t).classList.toggle('active', t===tab); });
+  ['overview','checkin'].forEach(t => { $('ttab-'+t).classList.toggle('active', t===tab); });
   if (tab === 'overview') {
     showScreen('screen-t-overview'); $('nav-title').textContent = 'Übersicht';
     searchQuery = ''; $('t-search').value = ''; $('t-search-clear').classList.remove('visible');
     loadDashboard(); startPoll();
-  } else if (tab === 'checkin') {
+  } else {
     stopPoll();
     showScreen('screen-t-checkin'); $('nav-title').textContent = 'Einloggen';
     const tname = ls('t_name');
     $('t-greeting').textContent = tname ? 'Hallo, ' + tname + '!' : 'Hallo!';
     refreshTeacherCard();
-  } else {
-    stopPoll();
-    showScreen('screen-t-qr'); $('nav-title').textContent = 'QR-Codes';
   }
 }
 function refreshTeacherCard() {
@@ -948,9 +897,12 @@ async function loadRoomOverview() {
 }
 
 function teacherBadgeHtml(t) {
-  const f = (t.fach||'').toUpperCase();
-  const cls = f === 'M' ? 'fach-m' : f === 'D' ? 'fach-d' : f === 'E' ? 'fach-e' : '';
-  return esc(t.name) + (f && cls ? `<span class="fach-badge ${cls}">${esc(f)}</span>` : '');
+  const faecher = (t.fach||'').split(',').map(f => f.trim().toUpperCase()).filter(Boolean);
+  const badges = faecher.map(f => {
+    const cls = f === 'M' ? 'fach-m' : f === 'D' ? 'fach-d' : f === 'E' ? 'fach-e' : '';
+    return cls ? `<span class="fach-badge ${cls}">${esc(f)}</span>` : '';
+  }).join('');
+  return esc(t.name) + badges;
 }
 
 function renderRoomOverview(all) {
@@ -1019,6 +971,21 @@ function renderRoomOverview(all) {
         </div></div>`;
     }
   });
+
+  // ── Lernbegleiter-Liste (alphabetisch) ──
+  if (teachers.length > 0) {
+    html += '<div class="sec-header" style="margin-top:14px">Lernbegleiter heute</div>';
+    html += '<div class="card">';
+    teachers.slice().sort((a,b) => a.name.localeCompare(b.name)).forEach(t => {
+      html += `<div class="card-row">
+        <div class="avatar avatar-t" style="width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">${esc(initials(t.name))}</div>
+        <div class="card-content">
+          <div class="card-label" style="font-size:15px">${teacherBadgeHtml(t)}</div>
+          <div class="card-sub">📍 ${esc(t.raum_name)}</div>
+        </div></div>`;
+    });
+    html += '</div>';
+  }
 
   el.innerHTML = html;
 }
@@ -1095,6 +1062,7 @@ function renderDashboard(teachers, students, query) {
   }
 
   if (q) {
+    // Eingecheckte Lernende, die passen
     filteredStudents.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
       const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
       html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
@@ -1105,6 +1073,26 @@ function renderDashboard(teachers, students, query) {
         </div>
         <div style="color:var(--text3);font-size:18px">›</div></div></div>`;
     });
+    // Nicht eingecheckte Lernende, die zur Suche passen
+    const filteredNotIn = notCheckedIn.filter(s =>
+      s.name.toLowerCase().includes(q) || (s.klasse||'').toLowerCase().includes(q));
+    filteredNotIn.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+      const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
+      html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
+        <div class="avatar avatar-absent">${esc(initials(s.name))}</div>
+        <div class="card-content">
+          <div class="person-name" style="color:var(--text3)">${esc(s.name)} <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1px 6px;font-weight:600">nicht eingecheckt</span></div>
+          <div class="person-meta">Klasse ${esc(s.klasse)}</div>
+        </div>
+        <div style="color:var(--text3);font-size:18px">›</div></div></div>`;
+    });
+    const total = filteredStudents.length + filteredNotIn.length;
+    if (total === 0) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Keine Treffer für „${esc(q)}"</div></div>`;
+      return;
+    }
+    // Trefferzahl aktualisieren
+    html = html.replace(/\d+ Treffer für/, total + ' Treffer für');
     el.innerHTML = html;
     bindPersonRows(el);
     return;
@@ -1126,7 +1114,7 @@ function renderDashboard(teachers, students, query) {
 
   function roomCard(key, icon, color, roomName, count, studentsArr) {
     const cKey = sanitize(key);
-    const isCollapsed = collapsedRooms.has(cKey);
+    const isCollapsed = !openRooms.has(cKey); // Standard: eingeklappt
     const arrow = isCollapsed ? 'closed' : '';
     const bodyDisplay = isCollapsed ? 'none' : 'block';
     let h = `<div class="room-card">
@@ -1175,7 +1163,7 @@ function renderDashboard(teachers, students, query) {
   // ── NICHT EINGECHECKT ──────────────────────────────────────────
   if (notCheckedIn.length > 0) {
     const cKey = 'not-checked-in';
-    const isCollapsed = collapsedRooms.has(cKey);
+    const isCollapsed = !openRooms.has(cKey); // Standard: eingeklappt
     const arrow = isCollapsed ? 'closed' : '';
     const bodyDisplay = isCollapsed ? 'none' : 'block';
     html += `<div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px 4px">Übersicht</div>`;
@@ -1235,14 +1223,14 @@ function toggleRoom(key) {
   const body  = $('rbody-' + key);
   const arrow = body ? body.previousElementSibling.querySelector('.collapse-arrow') : null;
   if (!body) return;
-  if (collapsedRooms.has(key)) {
-    collapsedRooms.delete(key);
-    body.style.display = 'block';
-    if (arrow) arrow.classList.remove('closed');
-  } else {
-    collapsedRooms.add(key);
+  if (openRooms.has(key)) {
+    openRooms.delete(key);       // zuklappen
     body.style.display = 'none';
     if (arrow) arrow.classList.add('closed');
+  } else {
+    openRooms.add(key);          // aufklappen
+    body.style.display = 'block';
+    if (arrow) arrow.classList.remove('closed');
   }
 }
 function startPoll() { stopPoll(); pollTimer = setInterval(()=>{ if($('screen-t-overview').classList.contains('active')) loadDashboard(); }, CFG.poll); }
@@ -1342,34 +1330,6 @@ async function loadTodayView() {
   }
 }
 
-// ── QR GENERATOR ─────────────────────────────────────────────────
-function generateRoomQR() {
-  const id = $('qr-id').value.trim().toUpperCase().replace(/\s+/g,'');
-  const name = $('qr-name').value.trim();
-  if (!id||!name) { toast('Raum-ID und Name eingeben'); return; }
-  const el = $('qr-room-result');
-  el.style.display = 'flex';
-  QRCode.toCanvas($('qr-room-canvas'), 'RAUM:'+id+':'+name,
-    {width:220,margin:2,color:{dark:'#1C1C1E',light:'#FFFFFF'}}, err => {
-      if (err) { toast('QR-Fehler: '+err.message); el.style.display='none'; return; }
-      $('qr-room-label').textContent = name + ' (' + id + ')';
-    });
-}
-function generateLogoutQR() {
-  const el = $('qr-logout-result');
-  el.style.display = 'flex';
-  QRCode.toCanvas($('qr-logout-canvas'), 'AUSLOGGEN',
-    {width:220,margin:2,color:{dark:'#FF3B30',light:'#FFFFFF'}}, err => {
-      if (err) { toast('QR-Fehler: '+err.message); el.style.display='none'; }
-    });
-}
-function downloadQR(canvasId, label) {
-  const safeName = (typeof label === 'string' ? label : $('qr-name').value.trim()).replace(/\s+/g,'_') || 'qr';
-  const a = document.createElement('a');
-  a.download = 'QR_' + safeName + '.png';
-  a.href = $(canvasId).toDataURL();
-  a.click();
-}
 </script>
 </body>
 </html>
