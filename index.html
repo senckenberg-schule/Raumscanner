@@ -296,9 +296,8 @@
       </div>
 
       <!-- Raumübersicht -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:4px">
+      <div style="margin-top:4px;margin-bottom:4px">
         <div class="sec-header" style="margin:0">Raumübersicht</div>
-        <button onclick="loadRoomOverview()" style="background:none;border:none;color:var(--blue);font-size:14px;cursor:pointer;padding:4px">↻ Aktualisieren</button>
       </div>
       <div id="room-overview-content">
         <div class="empty" style="padding:28px 24px"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>
@@ -480,6 +479,7 @@ let videoStream = null, scanning = false, scanContext = 'student';
 let currentModalFile = null;
 let lastCheckins = [], searchQuery = '';
 const openRooms = new Set(); // Schlüssel in diesem Set = aufgeklappt; Standard = eingeklappt
+const fileCache = new Map(); // href → {data, lm} – Delta-Cache für Lehrer-PROPFIND
 
 // ── UTILS ────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -922,6 +922,49 @@ async function updateSummary(entry) {
   await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing)});
 }
 
+// Lehrer lesen alle Einzeldateien (immer korrekt, kein Race Condition) ──
+async function getAllCheckins() {
+  const url = CFG.base + '/' + CFG.folder + '/';
+  const r = await fetch(url, {
+    method: 'PROPFIND',
+    headers: {'Depth':'1', 'Content-Type':'application/xml'},
+    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
+  });
+  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
+  const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
+  const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
+    const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
+    const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
+    return {href, lm};
+  }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
+
+  const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
+  for (let i = 0; i < toFetch.length; i += 6) {
+    const chunk = toFetch.slice(i, i + 6);
+    await Promise.all(chunk.map(async f => {
+      try {
+        const fr = await fetch(WORKER + f.href);
+        if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
+      } catch(e) {}
+    }));
+  }
+  return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
+}
+
+// Lehrer schreibt nach jedem Poll eine frische summary.json für Schüler ──
+async function writeSummary(all) {
+  const checkins = all.map(c => ({
+    type: c.type, name: c.name, klasse: c.klasse,
+    raum_id: c.raum_id || null, raum_name: c.raum_name || '',
+    timestamp: c.timestamp, date: c.date,
+    ...(c.fach ? {fach: c.fach} : {})
+  }));
+  const summary = {date: today(), updated: new Date().toISOString(), checkins};
+  await fetch(CFG.base + '/' + CFG.summaryFile, {
+    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(summary)
+  }).catch(()=>{});
+}
+
 // ── RAUMÜBERSICHT (Lernende-Seite) ───────────────────────────────
 async function loadRoomOverview() {
   const el = $('room-overview-content');
@@ -1045,8 +1088,9 @@ function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 let dashboardErrorCount = 0;
 async function loadDashboard() {
   try {
-    const all = await getSummary();
+    const all = await getAllCheckins();
     lastCheckins = all;
+    writeSummary(all); // Frische summary.json für Schüleransicht schreiben
     dashboardErrorCount = 0;
     const todayStr = today();
     const active   = all.filter(c => c.date === todayStr && c.raum_id);
