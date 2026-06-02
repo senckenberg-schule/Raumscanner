@@ -450,6 +450,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
+// ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
+const APP_VERSION = '20260602';
+(function() {
+  const stored = localStorage.getItem('rs2_app_ver');
+  if (stored && stored !== APP_VERSION) {
+    localStorage.setItem('rs2_app_ver', APP_VERSION);
+    // Neue URL-Version erzwingt frischen Download auch in iOS PWA
+    location.href = location.pathname + '?v=' + APP_VERSION;
+  } else {
+    localStorage.setItem('rs2_app_ver', APP_VERSION);
+  }
+})();
+
 // ── CONFIG ──────────────────────────────────────────────────────
 const CFG = {
   base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
