@@ -474,6 +474,23 @@ const CFG = {
 const WORKER = 'https://nextcloud-proxy.stbauer81.workers.dev';
 // Zugangsdaten und PIN liegen jetzt nur im Cloudflare Worker (nicht mehr im Client)
 
+// ── API-KEY SCHUTZ ───────────────────────────────────────────────
+// Alle Anfragen an den Worker bekommen automatisch den API-Key –
+// kein Fremdzugriff ohne diesen Schlüssel möglich.
+CFG.apiKey = '2d6e903a2e2cde5533a9dbc79fd249489d6c018964f21b5a';
+(function() {
+  const _fetch = window.fetch.bind(window);
+  window.fetch = function(url, opts = {}) {
+    const u = (typeof url === 'string') ? url : (url.url || '');
+    if (u.startsWith(WORKER)) {
+      const h = new Headers(opts.headers || {});
+      h.set('X-RaumScanner-Key', CFG.apiKey);
+      opts = {...opts, headers: h};
+    }
+    return _fetch(url, opts);
+  };
+})()
+
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
 const ROOMS = [
   { id: 'LERNBUERO1',    name: 'Lernbüro 1',           capacity: null, emoji: '📚' },
@@ -820,14 +837,17 @@ async function doCheckin(raumId, raumName, ctx) {
     const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
     if (isTeacher) { const fach = ls('t_subject'); if (fach) checkin.fach = fach; }
 
-    // Bei 423 (Datei gesperrt): einmal kurz warten und nochmal versuchen
-    let resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
-    if (resp.status === 423) {
-      await new Promise(r => setTimeout(r, 1500));
+    // Bei 423 (Ordner/Datei gesperrt): bis zu 3 Versuche mit steigenden Pausen
+    let resp;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
       resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
+      if (resp.status !== 423) break;
     }
     if (!resp.ok) {
-      const msg = resp.status === 423 ? 'Datei kurz gesperrt – bitte nochmal scannen' : 'HTTP ' + resp.status;
+      const msg = resp.status === 423
+        ? 'Server kurz ausgelastet – bitte in 5 Sekunden nochmal scannen'
+        : 'HTTP ' + resp.status;
       throw new Error(msg);
     }
 
