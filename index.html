@@ -820,8 +820,16 @@ async function doCheckin(raumId, raumName, ctx) {
     const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
     if (isTeacher) { const fach = ls('t_subject'); if (fach) checkin.fach = fach; }
 
-    const resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    // Bei 423 (Datei gesperrt): einmal kurz warten und nochmal versuchen
+    let resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
+    if (resp.status === 423) {
+      await new Promise(r => setTimeout(r, 1500));
+      resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
+    }
+    if (!resp.ok) {
+      const msg = resp.status === 423 ? 'Datei kurz gesperrt – bitte nochmal scannen' : 'HTTP ' + resp.status;
+      throw new Error(msg);
+    }
 
     if (isTeacher) ls('t_current', checkin);
     else           ls('s_current', checkin);
