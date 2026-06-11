@@ -649,6 +649,30 @@ function hideBackBtn() {
   $('nav-version').style.display = '';
 }
 
+// ── AUTO-LOGOUT (Schulende 15:20 Uhr) ───────────────────────────
+const AUTO_LOGOUT_H = 15, AUTO_LOGOUT_M = 20;
+
+async function performAutoLogout() {
+  const todayStr = today();
+  const sData = lsJson('s_current');
+  const tData = lsJson('t_current');
+  const needS = !!(sData && sData.date === todayStr && sData.raum_id);
+  const needT = !!(tData && tData.date === todayStr && tData.raum_id);
+  if (!needS && !needT) return;
+  if (needS) await doLogout('student').catch(() => {});
+  if (needT) await doLogout('teacher').catch(() => {});
+  toast('Automatisch ausgeloggt – Schulende 15:20 Uhr');
+}
+
+function scheduleAutoLogout() {
+  const now = new Date();
+  const cut = new Date(now);
+  cut.setHours(AUTO_LOGOUT_H, AUTO_LOGOUT_M, 0, 0);
+  const ms = cut - now;
+  if (ms <= 0) { performAutoLogout(); return; }
+  setTimeout(performAutoLogout, ms);
+}
+
 // ── BOOT ────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   $('today-date').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -659,6 +683,7 @@ window.addEventListener('load', () => {
   $('subtabs-teacher').classList.remove('visible');
   hideBackBtn();
   $('nav-title').textContent = 'RaumScanner';
+  scheduleAutoLogout();
 });
 
 // ── STARTSCREEN ──────────────────────────────────────────────────
