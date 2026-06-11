@@ -627,6 +627,12 @@ function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
+function fetchWithTimeout(url, opts, ms) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms || 12000);
+  return fetch(url, Object.assign({}, opts || {}, {signal: ctrl.signal}))
+    .finally(() => clearTimeout(id));
+}
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
@@ -830,11 +836,11 @@ function updatePinDots() {
 }
 async function checkPin() {
   try {
-    const r = await fetch(WORKER + '/api/verify-pin', {
+    const r = await fetchWithTimeout(WORKER + '/api/verify-pin', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({pin: pinVal})
-    });
+    }, 10000);
     const data = await r.json();
     if (data.ok) {
       teacherUnlocked = true;
@@ -1108,11 +1114,11 @@ async function updateSummary(entry) {
 // Lehrer lesen alle Einzeldateien (immer korrekt, kein Race Condition) ──
 async function getAllCheckins() {
   const url = CFG.base + '/' + CFG.folder + '/';
-  const r = await fetch(url, {
+  const r = await fetchWithTimeout(url, {
     method: 'PROPFIND',
     headers: {'Depth':'1', 'Content-Type':'application/xml'},
     body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
-  });
+  }, 15000);
   if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
   const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
   const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
@@ -1126,7 +1132,7 @@ async function getAllCheckins() {
     const chunk = toFetch.slice(i, i + 6);
     await Promise.all(chunk.map(async f => {
       try {
-        const fr = await fetch(WORKER + f.href);
+        const fr = await fetchWithTimeout(WORKER + f.href, {}, 10000);
         if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
       } catch(e) {}
     }));
@@ -1323,7 +1329,7 @@ async function loadDashboard() {
   } catch(e) {
     dashboardErrorCount++;
     if (dashboardErrorCount >= 3 || !lastCheckins.length) {
-      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Wird erneut versucht …</div></div>`;
+      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Keine Verbindung</div><div style="font-size:13px;color:var(--text3);margin-bottom:16px">Bitte Internetverbindung prüfen.</div><button class="btn btn-blue" onclick="dashboardErrorCount=0;loadDashboard()" style="max-width:220px;margin:0 auto">↻ Neu laden</button></div>`;
     } else {
       // Alte Daten weiter anzeigen statt Skeleton stehen zu lassen
       const todayStr = today();
