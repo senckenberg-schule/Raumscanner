@@ -1302,15 +1302,7 @@ function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 
 // ── LERNBEGLEITER DASHBOARD ──────────────────────────────────────
 function showSkeleton() {
-  const row = () => `<div style="display:flex;align-items:center;padding:11px 16px;gap:10px;border-bottom:1px solid var(--border)">
-    <div class="skeleton" style="width:36px;height:36px;border-radius:50%"></div>
-    <div style="flex:1">
-      <div class="skeleton" style="height:13px;width:52%;margin-bottom:7px"></div>
-      <div class="skeleton" style="height:11px;width:36%"></div>
-    </div></div>`;
-  $('t-dashboard').innerHTML = [1,2,3].map(() =>
-    `<div class="room-card"><div style="height:46px;background:var(--border)"></div>${row()}${row()}</div>`
-  ).join('');
+  $('t-dashboard').innerHTML = '<div class="empty"><div class="spinner" style="width:28px;height:28px;margin:0 auto 12px"></div><div style="font-size:14px;color:var(--text3)">Lädt …</div></div>';
 }
 
 let dashboardErrorCount = 0;
