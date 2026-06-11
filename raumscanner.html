@@ -4,18 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
   <title>RaumScanner</title>
   <style>
     :root {
-      --blue: #007AFF; --green: #34C759; --red: #FF3B30;
+      --blue: #007AFF; --green: #34C759; --red: #FF3B30; --purple: #5856D6;
       --bg: #F2F2F7; --card: #FFFFFF;
       --text: #1C1C1E; --text2: #3C3C43; --text3: #8E8E93;
-      --border: #C6C6C8; --radius: 12px;
+      --border: #C6C6C8; --radius: 14px;
       --safe-top: env(safe-area-inset-top, 44px);
       --safe-bottom: env(safe-area-inset-bottom, 34px);
+      --gradient: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+      --shadow: 0 2px 12px rgba(0,0,0,0.10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1C1C1E; --card: #2C2C2E;
+        --text: #FFFFFF; --text2: #EBEBF5; --text3: #8E8E93;
+        --border: #38383A;
+        --shadow-sm: 0 1px 4px rgba(0,0,0,0.3);
+        --shadow: 0 2px 12px rgba(0,0,0,0.4);
+      }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
@@ -25,67 +37,117 @@
     .nav-title { font-size: 17px; font-weight: 600; }
     .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(var(--safe-bottom) + 90px); }
     .tab-bar { display: flex; background: var(--card); border-top: 1px solid var(--border); padding-bottom: var(--safe-bottom); }
-    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 3px; cursor: pointer; color: var(--text3); }
+    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 3px; cursor: pointer; color: var(--text3); transition: color 0.2s; }
     .tab-item.active { color: var(--blue); }
-    .tab-icon { font-size: 22px; }
+    .tab-icon { font-size: 22px; transition: transform 0.25s cubic-bezier(.34,1.56,.64,1); }
+    .tab-item.active .tab-icon { transform: scale(1.18); }
     .tab-label { font-size: 10px; font-weight: 500; }
-    .card { background: var(--card); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+    .card { background: var(--card); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
     .card-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 12px; }
     .card-row:last-child { border-bottom: none; }
     .card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .card-content { flex: 1; }
     .card-label { font-size: 17px; }
     .card-sublabel { font-size: 13px; color: var(--text3); margin-top: 2px; }
-    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: var(--radius); border: none; font-size: 17px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-    .btn:active { opacity: 0.7; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--blue); color: white; }
-    .btn-success { background: var(--green); color: white; }
-    .btn-secondary { background: var(--bg); color: var(--blue); border: 1.5px solid var(--border); }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: var(--radius); border: none; font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease; }
+    .btn:active { transform: scale(0.97); opacity: 0.82; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--gradient); color: white; box-shadow: 0 4px 16px rgba(0,122,255,0.30); }
+    .btn-success { background: linear-gradient(135deg, #34C759, #28A74A); color: white; box-shadow: 0 4px 16px rgba(52,199,89,0.30); }
+    .btn-secondary { background: var(--card); color: var(--blue); border: 1.5px solid var(--border); box-shadow: none; }
     .form-group { margin-bottom: 16px; }
     .form-label { font-size: 13px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block; padding-left: 4px; }
-    .form-input { width: 100%; padding: 14px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--card); font-size: 17px; color: var(--text); -webkit-appearance: none; }
-    .form-input:focus { outline: none; border-color: var(--blue); }
+    .form-input { width: 100%; padding: 14px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--card); font-size: 17px; color: var(--text); -webkit-appearance: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,122,255,0.12); }
     .section-header { font-size: 13px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin: 20px 0 8px 4px; }
+
+    /* Screen transitions */
     .screen { display: none; }
-    .screen.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .screen.active { display: block; animation: fadeUp 0.28s cubic-bezier(.25,.46,.45,.94) both; }
+
+    /* Scanner */
     #scanner-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: black; z-index: 100; display: none; flex-direction: column; }
     #scanner-container.active { display: flex; }
     #scanner-video { flex: 1; object-fit: cover; width: 100%; }
     #scanner-canvas { display: none; }
     .scanner-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-    .scanner-frame { width: 250px; height: 250px; border: 3px solid white; border-radius: 20px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); }
-    .scanner-text { color: white; font-size: 15px; margin-top: 20px; text-align: center; padding: 0 32px; }
-    .scanner-cancel { position: absolute; bottom: calc(var(--safe-bottom) + 24px); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 30px; padding: 14px 40px; font-size: 17px; font-weight: 600; pointer-events: all; cursor: pointer; }
-    .success-icon { width: 80px; height: 80px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 32px auto 16px; animation: pop 0.3s ease-out; }
-    @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+    .scanner-frame {
+      position: relative; width: 250px; height: 250px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      border-radius: 20px; overflow: hidden;
+    }
+    /* Corner marks */
+    .sc { position: absolute; width: 28px; height: 28px; border: 3px solid white; }
+    .sc-tl { top: 6px; left: 6px; border-right: none; border-bottom: none; border-radius: 6px 0 0 0; }
+    .sc-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; border-radius: 0 6px 0 0; }
+    .sc-bl { bottom: 6px; left: 6px; border-right: none; border-top: none; border-radius: 0 0 0 6px; }
+    .sc-br { bottom: 6px; right: 6px; border-left: none; border-top: none; border-radius: 0 0 6px 0; }
+    /* Animated scan line */
+    .scanner-line {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(0,122,255,0.9) 50%, transparent 100%);
+      animation: scanLine 2s ease-in-out infinite;
+    }
+    @keyframes scanLine {
+      0%, 100% { top: 8%; }
+      50%       { top: 88%; }
+    }
+    .scanner-text { color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 24px; text-align: center; padding: 0 32px; }
+    .scanner-cancel { position: absolute; bottom: calc(var(--safe-bottom) + 24px); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.12); color: white; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 30px; padding: 14px 40px; font-size: 17px; font-weight: 600; pointer-events: all; cursor: pointer; backdrop-filter: blur(10px); }
+
+    /* Success */
+    .success-icon { width: 84px; height: 84px; background: linear-gradient(135deg, #34C759, #28A74A); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 42px; margin: 32px auto 20px; animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); box-shadow: 0 8px 24px rgba(52,199,89,0.35); }
+    @keyframes popIn { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* PIN */
     .pin-display { display: flex; gap: 14px; justify-content: center; margin: 24px 0; }
-    .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--text3); background: transparent; transition: background 0.1s; }
-    .pin-dot.filled { background: var(--blue); border-color: var(--blue); }
+    .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--text3); background: transparent; transition: all 0.15s cubic-bezier(.34,1.56,.64,1); }
+    .pin-dot.filled { background: var(--blue); border-color: var(--blue); transform: scale(1.12); }
     .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 280px; margin: 0 auto; }
-    .pin-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; font-size: 24px; font-weight: 300; cursor: pointer; }
-    .pin-btn:active { background: var(--border); }
-    .room-card { background: var(--card); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-    .room-header { display: flex; align-items: center; padding: 13px 16px; background: var(--blue); color: white; gap: 10px; }
-    .room-title { flex: 1; font-size: 17px; font-weight: 600; }
-    .room-count { background: rgba(255,255,255,0.25); padding: 2px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-    .student-row { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); gap: 10px; }
+    .pin-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; font-size: 24px; font-weight: 300; cursor: pointer; box-shadow: var(--shadow-sm); transition: transform 0.1s, background 0.1s; }
+    .pin-btn:active { background: var(--border); transform: scale(0.93); }
+
+    /* Teacher dashboard */
+    .stats-bar { display: flex; gap: 10px; margin-bottom: 14px; }
+    .stat-chip { flex: 1; background: var(--card); border-radius: 12px; padding: 12px 10px; text-align: center; box-shadow: var(--shadow-sm); }
+    .stat-num { font-size: 26px; font-weight: 700; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    .room-card { background: var(--card); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow); }
+    .room-header { display: flex; align-items: center; padding: 14px 16px; color: white; gap: 10px; }
+    .room-title { flex: 1; font-size: 17px; font-weight: 700; }
+    .room-count { background: rgba(255,255,255,0.25); padding: 3px 11px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+    @keyframes rowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+    .student-row { display: flex; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--border); gap: 10px; animation: rowIn 0.2s ease-out both; }
     .student-row:last-child { border-bottom: none; }
-    .student-avatar { width: 36px; height: 36px; border-radius: 50%; background: #E3F0FF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--blue); flex-shrink: 0; }
+    .student-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
     .student-name { flex: 1; font-size: 15px; font-weight: 500; }
     .student-meta { font-size: 12px; color: var(--text3); }
     .status-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; display: inline-block; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
-    .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty-title { font-size: 17px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+
+    /* Skeleton loader */
+    @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .skeleton { border-radius: 6px; background: linear-gradient(90deg, var(--border) 25%, #e8e8ea 50%, var(--border) 75%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; }
+    @media (prefers-color-scheme: dark) {
+      .skeleton { background: linear-gradient(90deg, #38383A 25%, #48484A 50%, #38383A 75%); background-size: 800px 100%; }
+    }
+
+    /* Empty & misc */
+    .empty-state { text-align: center; padding: 52px 24px; color: var(--text3); }
+    .empty-icon { font-size: 52px; margin-bottom: 16px; }
+    .empty-title { font-size: 18px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
     .qr-result { display: none; flex-direction: column; align-items: center; padding: 16px; }
-    #qr-canvas { border-radius: 8px; }
-    .toast { position: fixed; bottom: calc(var(--safe-bottom) + 85px); left: 50%; transform: translateX(-50%) translateY(10px); background: rgba(0,0,0,0.8); color: white; padding: 11px 22px; border-radius: 30px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.25s; white-space: nowrap; z-index: 999; }
+    #qr-canvas { border-radius: 10px; box-shadow: var(--shadow); }
+    .toast { position: fixed; bottom: calc(var(--safe-bottom) + 85px); left: 50%; transform: translateX(-50%) translateY(10px); background: rgba(28,28,30,0.9); color: white; padding: 11px 22px; border-radius: 30px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.25s; white-space: nowrap; z-index: 999; backdrop-filter: blur(20px); }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @media (prefers-color-scheme: dark) { .toast { background: rgba(58,58,60,0.95); } }
     .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner-dark { border-color: rgba(0,0,0,0.15); border-top-color: var(--blue); }
+    .spinner-dark { border-color: rgba(0,0,0,0.12); border-top-color: var(--blue); }
   </style>
 </head>
 <body>
@@ -94,16 +156,16 @@
   <div class="nav-header">
     <div style="width:60px"></div>
     <div class="nav-title" id="nav-title">RaumScanner</div>
-    <div style="width:60px; text-align:right; font-size:13px; color:var(--text3);" id="nav-right"></div>
+    <div style="width:60px;text-align:right;font-size:13px;color:var(--text3)" id="nav-right"></div>
   </div>
   <div class="content">
 
     <!-- SETUP -->
     <div class="screen" id="screen-setup">
-      <div style="text-align:center;padding:32px 0 28px">
-        <div style="font-size:60px;margin-bottom:14px">🏫</div>
-        <div style="font-size:22px;font-weight:700;margin-bottom:8px">Willkommen</div>
-        <div style="font-size:15px;color:var(--text3)">Gib einmal deinen Namen und deine Klasse ein – das wird für nächste Male gespeichert.</div>
+      <div style="text-align:center;padding:36px 0 32px">
+        <div style="font-size:64px;margin-bottom:16px">🏫</div>
+        <div style="font-size:24px;font-weight:700;margin-bottom:10px">Willkommen</div>
+        <div style="font-size:15px;color:var(--text3);line-height:1.5">Gib einmal deinen Namen und deine Klasse ein – das wird für nächste Male gespeichert.</div>
       </div>
       <div class="form-group">
         <label class="form-label">Dein Name</label>
@@ -118,13 +180,13 @@
 
     <!-- STUDENT MAIN -->
     <div class="screen" id="screen-student">
-      <div style="text-align:center;padding:28px 0 32px">
-        <div style="font-size:52px;margin-bottom:12px">📍</div>
-        <div style="font-size:22px;font-weight:700" id="greeting">Hallo!</div>
-        <div style="font-size:15px;color:var(--text3);margin-top:4px" id="student-class-display"></div>
+      <div style="text-align:center;padding:32px 0 36px">
+        <div style="font-size:56px;margin-bottom:14px">📍</div>
+        <div style="font-size:24px;font-weight:700" id="greeting">Hallo!</div>
+        <div style="font-size:15px;color:var(--text3);margin-top:5px" id="student-class-display"></div>
       </div>
       <button class="btn btn-primary" id="checkin-btn" onclick="startScanner()" style="font-size:18px;padding:20px">
-        📷 QR-Code scannen & einchecken
+        📷&nbsp; QR-Code scannen &amp; einchecken
       </button>
       <div id="last-checkin-card" style="display:none">
         <div class="section-header">Letzter Check-in</div>
@@ -143,22 +205,22 @@
 
     <!-- SUCCESS -->
     <div class="screen" id="screen-success">
-      <div class="success-icon">✓</div>
-      <div style="text-align:center">
-        <div style="font-size:22px;font-weight:700;margin-bottom:8px">Eingecheckt!</div>
-        <div style="font-size:17px;color:var(--text3)" id="success-room">—</div>
-        <div style="font-size:14px;color:var(--text3);margin-top:4px" id="success-time">—</div>
+      <div style="text-align:center;padding:20px 20px 0">
+        <div class="success-icon">✓</div>
+        <div style="font-size:26px;font-weight:700;margin-bottom:10px">Eingecheckt!</div>
+        <div style="font-size:18px;color:var(--text3)" id="success-room">—</div>
+        <div style="font-size:14px;color:var(--text3);margin-top:6px" id="success-time">—</div>
       </div>
-      <div style="margin-top:32px">
+      <div style="margin-top:36px">
         <button class="btn btn-success" onclick="showScreen('screen-student')">Fertig ✓</button>
       </div>
     </div>
 
     <!-- TEACHER PIN -->
     <div class="screen" id="screen-teacher-pin">
-      <div style="text-align:center;padding:28px 0">
-        <div style="font-size:48px;margin-bottom:12px">🔒</div>
-        <div style="font-size:20px;font-weight:700;margin-bottom:4px">Lehrer-Zugang</div>
+      <div style="text-align:center;padding:32px 0">
+        <div style="font-size:52px;margin-bottom:14px">🔒</div>
+        <div style="font-size:22px;font-weight:700;margin-bottom:6px">Lehrer-Zugang</div>
         <div style="font-size:14px;color:var(--text3)">PIN eingeben</div>
       </div>
       <div class="pin-display">
@@ -185,18 +247,14 @@
 
     <!-- TEACHER DASHBOARD -->
     <div class="screen" id="screen-teacher">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:7px">
           <span class="status-pulse"></span>
           <span style="font-size:13px;color:var(--text3)">Live · alle 10 Sek.</span>
         </div>
         <span style="font-size:13px;color:var(--text3)" id="last-update">Lädt...</span>
       </div>
-      <div id="teacher-dashboard">
-        <div class="empty-state">
-          <div class="spinner spinner-dark" style="width:28px;height:28px;margin:0 auto"></div>
-        </div>
-      </div>
+      <div id="teacher-dashboard"></div>
 
       <div class="section-header">QR-Codes für Räume erstellen</div>
       <div class="card">
@@ -212,18 +270,17 @@
           <button class="btn btn-primary" onclick="generateQR()">QR-Code erstellen</button>
         </div>
         <div class="qr-result" id="qr-result">
-          <canvas id="qr-canvas" style="border-radius:8px"></canvas>
-          <div style="font-size:13px;color:var(--text3);margin-top:8px;text-align:center" id="qr-label"></div>
+          <canvas id="qr-canvas"></canvas>
+          <div style="font-size:13px;color:var(--text3);margin-top:10px;text-align:center" id="qr-label"></div>
           <button class="btn btn-secondary" onclick="downloadQR()" style="margin-top:12px;max-width:200px">💾 Als Bild speichern</button>
         </div>
       </div>
-
       <div style="margin-top:8px">
         <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="teacherLogout()">Abmelden</button>
       </div>
     </div>
 
-  </div><!-- end content -->
+  </div>
 
   <div class="tab-bar">
     <div class="tab-item active" id="tab-student" onclick="switchTab('student')">
@@ -243,7 +300,13 @@
   <canvas id="scanner-canvas"></canvas>
   <div class="scanner-overlay">
     <div style="color:white;font-size:20px;font-weight:700;margin-bottom:20px;text-shadow:0 1px 4px rgba(0,0,0,.5)">QR-Code scannen</div>
-    <div class="scanner-frame"></div>
+    <div class="scanner-frame">
+      <div class="sc sc-tl"></div>
+      <div class="sc sc-tr"></div>
+      <div class="sc sc-bl"></div>
+      <div class="sc sc-br"></div>
+      <div class="scanner-line"></div>
+    </div>
     <div class="scanner-text">Halte die Kamera auf den QR-Code des Raums</div>
   </div>
   <button class="scanner-cancel" onclick="stopScanner()">Abbrechen</button>
@@ -261,7 +324,8 @@ const CFG = {
   pass: 'NfR5L-mA8rH-Lg9rZ-cD6D2-TAPs6',
   folder: 'RaumScanner/checkins',
   pin: '1234',
-  poll: 10000
+  poll: 10000,
+  retentionMs: 14 * 24 * 60 * 60 * 1000,
 };
 const AUTH = 'Basic ' + btoa(CFG.user + ':' + CFG.pass);
 
@@ -269,16 +333,48 @@ const AUTH = 'Basic ' + btoa(CFG.user + ':' + CFG.pass);
 let pinVal = '', teacherOk = false, pollTimer = null;
 let videoStream = null, scanning = false;
 
+// ── CRYPTO ───────────────────────────────────────────
+let _ck = null;
+async function getCK() {
+  if (_ck) return _ck;
+  const enc = new TextEncoder();
+  const km = await crypto.subtle.importKey(
+    'raw', enc.encode(CFG.pass), {name:'PBKDF2'}, false, ['deriveKey']
+  );
+  _ck = await crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:enc.encode('RaumScanner-v2'), iterations:50000, hash:'SHA-256'},
+    km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+  );
+  return _ck;
+}
+async function encryptStr(s) {
+  const key = await getCK();
+  const iv  = crypto.getRandomValues(new Uint8Array(12));
+  const ct  = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(s));
+  const buf = new Uint8Array(12 + ct.byteLength);
+  buf.set(iv, 0); buf.set(new Uint8Array(ct), 12);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decryptStr(b64) {
+  try {
+    const key   = await getCK();
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const plain = await crypto.subtle.decrypt(
+      {name:'AES-GCM', iv:bytes.slice(0,12)}, key, bytes.slice(12)
+    );
+    return new TextDecoder().decode(plain);
+  } catch { return '(?)'; }
+}
+async function hashFilename(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s + CFG.pass));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32);
+}
+
 // ── BOOT ─────────────────────────────────────────────
 window.addEventListener('load', () => {
   const name = ls('name'), kl = ls('klasse');
-  if (name && kl) {
-    setGreeting(name, kl);
-    updateLastCard();
-    showScreen('screen-student');
-  } else {
-    showScreen('screen-setup');
-  }
+  if (name && kl) { setGreeting(name, kl); updateLastCard(); showScreen('screen-student'); }
+  else showScreen('screen-setup');
 });
 
 // ── UTILS ─────────────────────────────────────────────
@@ -289,7 +385,9 @@ function ls(k, v) {
     else localStorage.setItem('rs_' + k, v);
   } catch(e) {}
 }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 function sanitize(s) {
   return s.toLowerCase()
     .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
@@ -308,25 +406,43 @@ function fmtTime(iso) {
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
+  setTimeout(() => t.classList.remove('show'), 2800);
 }
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  const titles = {'screen-setup':'Einrichten','screen-student':'RaumScanner',
-    'screen-success':'Eingecheckt!','screen-teacher-pin':'Lehrer-Zugang','screen-teacher':'Übersicht'};
+  const titles = {
+    'screen-setup':'Einrichten','screen-student':'RaumScanner',
+    'screen-success':'Eingecheckt!','screen-teacher-pin':'Lehrer-Zugang','screen-teacher':'Übersicht'
+  };
   document.getElementById('nav-title').textContent = titles[id] || 'RaumScanner';
+}
+function roomGradient(roomId) {
+  const palettes = [
+    ['#007AFF','#5856D6'], ['#34C759','#00B341'],
+    ['#FF9500','#E07000'], ['#FF2D55','#C4203E'],
+    ['#AF52DE','#7B61FF'], ['#00C7BE','#0076BA'],
+  ];
+  let h = 0;
+  for (const c of String(roomId)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const [c1, c2] = palettes[h % palettes.length];
+  return `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+}
+function avatarColor(initials) {
+  const colors = ['#007AFF','#34C759','#FF9500','#FF2D55','#AF52DE','#00C7BE','#5856D6'];
+  let h = 0;
+  for (const c of String(initials)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return colors[h % colors.length];
 }
 
 // ── SETUP ─────────────────────────────────────────────
 function saveSetup() {
   const name = document.getElementById('setup-name').value.trim();
-  const kl = document.getElementById('setup-class').value.trim();
+  const kl   = document.getElementById('setup-class').value.trim();
   if (!name) { toast('Bitte Namen eingeben'); return; }
   if (!kl)   { toast('Bitte Klasse eingeben'); return; }
   ls('name', name); ls('klasse', kl);
-  setGreeting(name, kl);
-  updateLastCard();
+  setGreeting(name, kl); updateLastCard();
   showScreen('screen-student');
   document.getElementById('tab-student').classList.add('active');
   document.getElementById('tab-teacher').classList.remove('active');
@@ -355,26 +471,15 @@ async function startScanner() {
   document.getElementById('scanner-container').classList.add('active');
   let stream = null;
   try {
-    // Rückkamera bevorzugt, aber nicht erzwingen
     stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
   } catch(e1) {
-    try {
-      // Fallback: irgendeine Kamera
-      stream = await navigator.mediaDevices.getUserMedia({video:true});
-    } catch(e2) {
-      toast('Kamera nicht verfügbar – Berechtigung prüfen');
-      stopScanner();
-      return;
-    }
+    try { stream = await navigator.mediaDevices.getUserMedia({video:true}); }
+    catch(e2) { toast('Kamera nicht verfügbar – Berechtigung prüfen'); stopScanner(); return; }
   }
   videoStream = stream;
   const v = document.getElementById('scanner-video');
   v.srcObject = stream;
-  v.onloadedmetadata = () => {
-    v.play();
-    scanning = true;
-    requestAnimationFrame(scanFrame);
-  };
+  v.onloadedmetadata = () => { v.play(); scanning = true; requestAnimationFrame(scanFrame); };
 }
 function scanFrame() {
   if (!scanning) return;
@@ -383,41 +488,54 @@ function scanFrame() {
   if (v.readyState === v.HAVE_ENOUGH_DATA) {
     c.width = v.videoWidth; c.height = v.videoHeight;
     const ctx = c.getContext('2d');
-    ctx.drawImage(v,0,0,c.width,c.height);
-    const img = ctx.getImageData(0,0,c.width,c.height);
-    const code = jsQR(img.data,img.width,img.height);
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    const img  = ctx.getImageData(0, 0, c.width, c.height);
+    const code = jsQR(img.data, img.width, img.height);
     if (code) { scanning = false; stopScanner(); handleQR(code.data); return; }
   }
   requestAnimationFrame(scanFrame);
 }
 function stopScanner() {
   scanning = false;
-  if (videoStream) { videoStream.getTracks().forEach(t=>t.stop()); videoStream = null; }
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
   document.getElementById('scanner-container').classList.remove('active');
 }
 function handleQR(data) {
   if (!data.startsWith('RAUM:')) { toast('Kein gültiger Raum-QR-Code'); return; }
   const parts = data.split(':');
   if (parts.length < 3) { toast('Ungültiger QR-Code'); return; }
-  const raumId = parts[1];
-  const raumName = parts.slice(2).join(':');
-  doCheckin(raumId, raumName);
+  doCheckin(parts[1], parts.slice(2).join(':'));
 }
 
 // ── CHECK-IN ──────────────────────────────────────────
 async function doCheckin(raumId, raumName) {
   const name = ls('name'), kl = ls('klasse');
-  const btn = document.getElementById('checkin-btn');
+  const btn  = document.getElementById('checkin-btn');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Wird gespeichert...';
   try {
     await ensureFolder();
-    const checkin = {name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:new Date().toISOString()};
-    const file = sanitize(name+'_'+kl) + '.json';
-    const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(file);
-    const r = await fetch(url, {method:'PUT', headers:{'Authorization':AUTH,'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
+    const [nameEnc, klasseEnc, fileHash] = await Promise.all([
+      encryptStr(name),
+      encryptStr(kl),
+      hashFilename(sanitize(name + '_' + kl)),
+    ]);
+    const checkin = {
+      enc: true,
+      name_enc: nameEnc,
+      klasse_enc: klasseEnc,
+      raum_id: raumId,
+      raum_name: raumName,
+      timestamp: new Date().toISOString(),
+    };
+    const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(fileHash + '.json');
+    const r = await fetch(url, {
+      method: 'PUT',
+      headers: {'Authorization': AUTH, 'Content-Type': 'application/json'},
+      body: JSON.stringify(checkin, null, 2),
+    });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    ls('last', JSON.stringify(checkin));
+    ls('last', JSON.stringify({raum_id: raumId, raum_name: raumName, timestamp: checkin.timestamp}));
     updateLastCard();
     document.getElementById('success-room').textContent = '📍 ' + raumName;
     document.getElementById('success-time').textContent = fmtTime(checkin.timestamp);
@@ -428,50 +546,61 @@ async function doCheckin(raumId, raumName) {
     else toast('Fehler: ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '📷 QR-Code scannen & einchecken';
+    btn.innerHTML = '📷&nbsp; QR-Code scannen &amp; einchecken';
   }
 }
 async function ensureFolder() {
-  for (const path of ['RaumScanner', CFG.folder]) {
-    await fetch(CFG.base+'/'+path, {method:'MKCOL',headers:{'Authorization':AUTH}}).catch(()=>{});
-  }
+  for (const path of ['RaumScanner', CFG.folder])
+    await fetch(CFG.base + '/' + path, {method:'MKCOL', headers:{'Authorization':AUTH}}).catch(()=>{});
 }
 
 // ── TAB SWITCH ────────────────────────────────────────
 function switchTab(tab) {
-  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'student') {
     stopPoll();
     showScreen(ls('name') ? 'screen-student' : 'screen-setup');
   } else {
     if (teacherOk) { showScreen('screen-teacher'); loadDashboard(); startPoll(); }
-    else { pinVal=''; updatePinDots(); showScreen('screen-teacher-pin'); }
+    else { pinVal = ''; updatePinDots(); showScreen('screen-teacher-pin'); }
   }
 }
 
 // ── PIN ───────────────────────────────────────────────
-function pinInput(d) {
-  if (pinVal.length >= 4) return;
-  pinVal += d; updatePinDots();
-  if (pinVal.length === 4) setTimeout(checkPin, 120);
-}
-function pinBackspace() { pinVal = pinVal.slice(0,-1); updatePinDots(); }
-function pinClear()     { pinVal = ''; updatePinDots(); }
+function pinInput(d)  { if (pinVal.length >= 4) return; pinVal += d; updatePinDots(); if (pinVal.length === 4) setTimeout(checkPin, 120); }
+function pinBackspace(){ pinVal = pinVal.slice(0,-1); updatePinDots(); }
+function pinClear()   { pinVal = ''; updatePinDots(); }
 function updatePinDots() {
-  for (let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled', i < pinVal.length);
+  for (let i = 0; i < 4; i++) document.getElementById('pd' + i).classList.toggle('filled', i < pinVal.length);
 }
 function checkPin() {
   if (pinVal === CFG.pin) {
-    teacherOk = true;
-    showScreen('screen-teacher');
-    loadDashboard(); startPoll();
-  } else { toast('Falscher PIN'); pinVal=''; updatePinDots(); }
+    teacherOk = true; showScreen('screen-teacher'); loadDashboard(); startPoll();
+  } else { toast('Falscher PIN'); pinVal = ''; updatePinDots(); }
 }
-function teacherLogout() { teacherOk=false; stopPoll(); switchTab('student'); }
+function teacherLogout() { teacherOk = false; stopPoll(); switchTab('student'); }
+
+// ── SKELETON ──────────────────────────────────────────
+function showSkeleton() {
+  const row = () => `<div style="display:flex;align-items:center;padding:12px 16px;gap:10px;border-bottom:1px solid var(--border)">
+    <div class="skeleton" style="width:36px;height:36px;border-radius:50%"></div>
+    <div style="flex:1">
+      <div class="skeleton" style="height:13px;width:55%;margin-bottom:7px"></div>
+      <div class="skeleton" style="height:11px;width:38%"></div>
+    </div></div>`;
+  document.getElementById('teacher-dashboard').innerHTML =
+    [1,2,3].map(() =>
+      `<div class="room-card">
+        <div style="height:50px;background:var(--border)"></div>
+        ${row()}${row()}
+      </div>`
+    ).join('');
+}
 
 // ── TEACHER DASHBOARD ─────────────────────────────────
 async function loadDashboard() {
+  showSkeleton();
   try {
     const checkins = await getAllCheckins();
     renderDashboard(checkins);
@@ -479,7 +608,7 @@ async function loadDashboard() {
       'Zuletzt ' + new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   } catch(e) {
     document.getElementById('teacher-dashboard').innerHTML =
-      '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div>'+esc(e.message)+'</div></div>';
+      `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div>${esc(e.message)}</div></div>`;
   }
 }
 function renderDashboard(checkins) {
@@ -490,50 +619,93 @@ function renderDashboard(checkins) {
   }
   const rooms = {};
   checkins.forEach(c => {
-    const k = c.raum_id||'?';
-    if (!rooms[k]) rooms[k] = {name:c.raum_name||k, students:[]};
+    const k = c.raum_id || '?';
+    if (!rooms[k]) rooms[k] = {id: k, name: c.raum_name || k, students: []};
     rooms[k].students.push(c);
   });
-  Object.values(rooms).forEach(r => r.students.sort((a,b)=>a.name.localeCompare(b.name)));
+  Object.values(rooms).forEach(r => r.students.sort((a,b) => a.name.localeCompare(b.name)));
   const total = checkins.length, rc = Object.keys(rooms).length;
-  let html = `<div style="text-align:center;font-size:14px;color:var(--text3);margin-bottom:12px">${total} Schüler in ${rc} Raum${rc!==1?'en':''}</div>`;
-  Object.entries(rooms).sort(([,a],[,b])=>a.name.localeCompare(b.name)).forEach(([,room]) => {
-    html += `<div class="room-card"><div class="room-header"><span>📍</span><span class="room-title">${esc(room.name)}</span><span class="room-count">${room.students.length}</span></div>`;
+  let html = `<div class="stats-bar">
+    <div class="stat-chip"><div class="stat-num">${total}</div><div class="stat-label">Schüler</div></div>
+    <div class="stat-chip"><div class="stat-num">${rc}</div><div class="stat-label">Räume</div></div>
+  </div>`;
+  let rowIdx = 0;
+  Object.entries(rooms).sort(([,a],[,b]) => a.name.localeCompare(b.name)).forEach(([, room]) => {
+    const grad = roomGradient(room.id);
+    html += `<div class="room-card">
+      <div class="room-header" style="background:${grad}">
+        <span>📍</span><span class="room-title">${esc(room.name)}</span>
+        <span class="room-count">${room.students.length}</span>
+      </div>`;
     room.students.forEach(s => {
-      const init = s.name.split(' ').map(n=>n[0]||'').join('').substring(0,2).toUpperCase();
-      html += `<div class="student-row"><div class="student-avatar">${esc(init)}</div><div class="card-content"><div class="student-name">${esc(s.name)}</div><div class="student-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div></div></div>`;
+      const init  = s.name.split(' ').map(n => n[0] || '').join('').slice(0,2).toUpperCase();
+      const color = avatarColor(init);
+      html += `<div class="student-row" style="animation-delay:${rowIdx * 45}ms">
+        <div class="student-avatar" style="background:${color}">${esc(init)}</div>
+        <div class="card-content">
+          <div class="student-name">${esc(s.name)}</div>
+          <div class="student-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div>
+        </div></div>`;
+      rowIdx++;
     });
-    html += `</div>`;
+    html += '</div>';
   });
   el.innerHTML = html;
 }
+
 async function getAllCheckins() {
   const url = CFG.base + '/' + CFG.folder + '/';
-  const r = await fetch(url, {method:'PROPFIND', headers:{'Authorization':AUTH,'Depth':'1','Content-Type':'application/xml'}, body:'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'});
-  if (!r.ok) { if (r.status===404){await ensureFolder();return[];} throw new Error('PROPFIND '+r.status); }
-  const xml = new DOMParser().parseFromString(await r.text(),'application/xml');
+  const r = await fetch(url, {
+    method: 'PROPFIND',
+    headers: {'Authorization': AUTH, 'Depth': '1', 'Content-Type': 'application/xml'},
+    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>',
+  });
+  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
+  const xml   = new DOMParser().parseFromString(await r.text(), 'application/xml');
   const hrefs = Array.from(xml.querySelectorAll('response href'))
-    .map(e=>decodeURIComponent(e.textContent.trim()))
-    .filter(h=>h.endsWith('.json'));
-  const results = await Promise.all(hrefs.map(async h => {
+    .map(e => decodeURIComponent(e.textContent.trim()))
+    .filter(h => h.endsWith('.json'));
+
+  const now      = Date.now();
+  const toDelete = [];
+  const results  = await Promise.all(hrefs.map(async h => {
     try {
-      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev'+h,{headers:{'Authorization':AUTH}});
-      return fr.ok ? fr.json() : null;
-    } catch {return null;}
+      const fr = await fetch('https://nextcloud-proxy.stbauer81.workers.dev' + h, {headers:{'Authorization':AUTH}});
+      if (!fr.ok) return null;
+      const data = await fr.json();
+      // Auto-delete entries older than 2 weeks
+      if (data.timestamp && now - new Date(data.timestamp).getTime() > CFG.retentionMs) {
+        toDelete.push(h); return null;
+      }
+      // Decrypt pseudonymized fields
+      if (data.enc) {
+        data.name   = await decryptStr(data.name_enc);
+        data.klasse = await decryptStr(data.klasse_enc);
+      }
+      return data;
+    } catch { return null; }
   }));
+
+  // Fire-and-forget deletion of expired entries
+  if (toDelete.length) {
+    toDelete.forEach(h => fetch('https://nextcloud-proxy.stbauer81.workers.dev' + h,
+      {method:'DELETE', headers:{'Authorization':AUTH}}).catch(()=>{}));
+    toast(`🗑 ${toDelete.length} abgelaufene${toDelete.length === 1 ? 'r Eintrag' : ' Einträge'} gelöscht`);
+  }
+
   return results.filter(Boolean);
 }
-function startPoll() { stopPoll(); pollTimer = setInterval(()=>{ if(document.getElementById('screen-teacher').classList.contains('active')) loadDashboard(); }, CFG.poll); }
-function stopPoll()  { if(pollTimer){clearInterval(pollTimer);pollTimer=null;} }
+
+function startPoll() { stopPoll(); pollTimer = setInterval(() => { if (document.getElementById('screen-teacher').classList.contains('active')) loadDashboard(); }, CFG.poll); }
+function stopPoll()  { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
 // ── QR GENERATOR ──────────────────────────────────────
 function generateQR() {
-  const id = document.getElementById('qr-id').value.trim().toUpperCase().replace(/\s+/g,'');
+  const id   = document.getElementById('qr-id').value.trim().toUpperCase().replace(/\s+/g,'');
   const name = document.getElementById('qr-name').value.trim();
-  if (!id||!name) { toast('Raum-ID und Name eingeben'); return; }
-  const data = 'RAUM:'+id+':'+name;
-  QRCode.toCanvas(document.getElementById('qr-canvas'), data,
-    {width:220,margin:2,color:{dark:'#1C1C1E',light:'#FFFFFF'}}, err => {
+  if (!id || !name) { toast('Raum-ID und Name eingeben'); return; }
+  QRCode.toCanvas(document.getElementById('qr-canvas'), 'RAUM:' + id + ':' + name,
+    {width:220, margin:2, color:{dark:'#1C1C1E', light:'#FFFFFF'}}, err => {
     if (err) { toast('Fehler beim QR-Code'); return; }
     document.getElementById('qr-label').textContent = name + ' (' + id + ')';
     document.getElementById('qr-result').style.display = 'flex';
