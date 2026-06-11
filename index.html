@@ -539,17 +539,20 @@ CFG.apiKey = '2d6e903a2e2cde5533a9dbc79fd249489d6c018964f21b5a';
 })()
 
 // ── CRYPTO (Pseudonymisierung) ───────────────────────────────────
-let _ck = null;
+let _ckPromise = null;
 async function getCK() {
-  if (_ck) return _ck;
-  const km = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(CFG.apiKey), {name:'PBKDF2'}, false, ['deriveKey']
-  );
-  _ck = await crypto.subtle.deriveKey(
-    {name:'PBKDF2', salt:new TextEncoder().encode('RaumScanner-v2'), iterations:50000, hash:'SHA-256'},
-    km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
-  );
-  return _ck;
+  if (!_ckPromise) {
+    _ckPromise = (async () => {
+      const km = await crypto.subtle.importKey(
+        'raw', new TextEncoder().encode(CFG.apiKey), {name:'PBKDF2'}, false, ['deriveKey']
+      );
+      return crypto.subtle.deriveKey(
+        {name:'PBKDF2', salt:new TextEncoder().encode('RaumScanner-v2'), iterations:50000, hash:'SHA-256'},
+        km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+      );
+    })();
+  }
+  return _ckPromise;
 }
 async function encryptStr(s) {
   const key = await getCK();
@@ -1095,76 +1098,44 @@ async function updateSummary(entry) {
   const idx = existing.checkins.findIndex(c =>
     (c._id || sanitize(c.name + '_' + (c.klasse || ''))) === key
   );
-  const se = isStudent ? {
-    type: entry.type,
-    _id: entry._fileHash || sanitize(entry.name + '_' + (entry.klasse || '')),
-    raum_id: entry.raum_id || null,
-    timestamp: entry.timestamp, date: entry.date,
-  } : {
-    type: entry.type, name: entry.name, klasse: entry.klasse,
-    raum_id: entry.raum_id || null, raum_name: entry.raum_name || '',
-    timestamp: entry.timestamp, date: entry.date,
-    ...(entry.fach ? {fach: entry.fach} : {}),
-  };
+  let se;
+  if (isStudent) {
+    const [ne, ke] = await Promise.all([encryptStr(entry.name), encryptStr(entry.klasse||'')]);
+    se = {type:entry.type, _id:entry._fileHash||sanitize(entry.name+'_'+(entry.klasse||'')),
+      name_enc:ne, klasse_enc:ke, raum_id:entry.raum_id||null, raum_name:entry.raum_name||null,
+      timestamp:entry.timestamp, date:entry.date};
+  } else {
+    se = {type:entry.type, name:entry.name, klasse:entry.klasse,
+      raum_id:entry.raum_id||null, raum_name:entry.raum_name||'',
+      timestamp:entry.timestamp, date:entry.date, ...(entry.fach?{fach:entry.fach}:{})};
+  }
   if (idx >= 0) existing.checkins[idx] = se; else existing.checkins.push(se);
   existing.updated = new Date().toISOString();
   await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing)});
 }
 
-// Lehrer lesen alle Einzeldateien (immer korrekt, kein Race Condition) ──
+// Lehrer lesen summary.json (1 Request) und entschlüsseln Namen client-seitig ──
 async function getAllCheckins() {
-  const url = CFG.base + '/' + CFG.folder + '/';
-  const r = await fetchWithTimeout(url, {
-    method: 'PROPFIND',
-    headers: {'Depth':'1', 'Content-Type':'application/xml'},
-    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
-  }, 15000);
-  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
-  const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
-  const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
-    const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
-    const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
-    return {href, lm};
-  }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
-
-  const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
-  for (let i = 0; i < toFetch.length; i += 6) {
-    const chunk = toFetch.slice(i, i + 6);
-    await Promise.all(chunk.map(async f => {
-      try {
-        const fr = await fetchWithTimeout(WORKER + f.href, {}, 10000);
-        if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
-      } catch(e) {}
-    }));
-  }
-
-  // Entschlüsseln, _filename setzen, abgelaufene Einträge löschen
-  const now = Date.now();
-  const toDelete = [];
-  const results = await Promise.all(fileInfos.map(async f => {
-    const cached = fileCache.get(f.href);
-    if (!cached) return null;
-    const data = {...cached.data};
-    // Auto-Löschung nach 2 Wochen
-    if (data.timestamp && now - new Date(data.timestamp).getTime() > CFG.retentionMs) {
-      toDelete.push(f.href); fileCache.delete(f.href); return null;
+  const url = CFG.base + '/' + CFG.summaryFile;
+  const r = await fetchWithTimeout(url, {}, 15000);
+  if (r.status === 404) { await ensureFolder(); return []; }
+  if (!r.ok) throw new Error('Verbindung fehlgeschlagen (' + r.status + ')');
+  const summary = await r.json();
+  if (summary.date !== today()) return [];
+  const checkins = Array.isArray(summary.checkins) ? summary.checkins : Object.values(summary.checkins || {});
+  return Promise.all(checkins.map(async entry => {
+    const result = {...entry};
+    if (entry.type !== 'lehrer') {
+      if (entry.name_enc) {
+        result.name   = await decryptStr(entry.name_enc);
+        result.klasse = await decryptStr(entry.klasse_enc || '');
+      } else if (!result.name) {
+        result.name = '?'; result.klasse = '';
+      }
+      result._filename = entry._id;
     }
-    // Verschlüsselte Felder entschlüsseln
-    if (data.enc) {
-      data.name   = await decryptStr(data.name_enc);
-      data.klasse = await decryptStr(data.klasse_enc);
-    }
-    // Tatsächlichen Dateinamen mitspeichern (für data-file Attribut)
-    data._filename = f.href.split('/').pop();
-    return data;
+    return result;
   }));
-
-  if (toDelete.length) {
-    toDelete.forEach(h => fetch(WORKER + h, {method:'DELETE'}).catch(()=>{}));
-    toast(`🗑 ${toDelete.length} abgelaufene${toDelete.length===1?' Eintrag':' Einträge'} gelöscht`);
-  }
-
-  return results.filter(Boolean);
 }
 
 // Lehrer schreibt nach jedem Poll eine frische summary.json für Schüler ──
@@ -1175,10 +1146,9 @@ async function writeSummary(all) {
     timestamp: c.timestamp, date: c.date,
     ...(c.fach ? {fach: c.fach} : {}),
   } : {
-    // Lernende: kein Klarname in summary
-    type: c.type,
-    _id: c._filename || sanitize(c.name + '_' + (c.klasse || '')),
-    raum_id: c.raum_id || null,
+    type: c.type, _id: c._filename || c._id,
+    ...(c.name_enc ? {name_enc: c.name_enc, klasse_enc: c.klasse_enc} : {}),
+    raum_id: c.raum_id || null, raum_name: c.raum_name || null,
     timestamp: c.timestamp, date: c.date,
   });
   const summary = {date: today(), updated: new Date().toISOString(), checkins};
