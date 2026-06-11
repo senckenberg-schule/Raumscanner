@@ -1315,7 +1315,8 @@ function showSkeleton() {
 
 let dashboardErrorCount = 0;
 async function loadDashboard() {
-  showSkeleton();
+  // Skeleton nur beim ersten Laden zeigen (solange noch keine Daten vorhanden)
+  if (!lastCheckins.length) showSkeleton();
   try {
     const all = await getAllCheckins();
     lastCheckins = all;
@@ -1330,10 +1331,12 @@ async function loadDashboard() {
   } catch(e) {
     dashboardErrorCount++;
     if (dashboardErrorCount >= 3 || !lastCheckins.length) {
-      // Nach 3 Fehlern in Folge oder wenn noch keine Daten: Fehlermeldung
       $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Wird erneut versucht …</div></div>`;
     } else {
-      // Alte Daten weiter anzeigen, nur Status aktualisieren
+      // Alte Daten weiter anzeigen statt Skeleton stehen zu lassen
+      const todayStr = today();
+      const active = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+      renderDashboard(active.filter(c=>c.type==='lehrer'), active.filter(c=>c.type!=='lehrer'), searchQuery);
       $('t-last-update').textContent = '⚠️ Verbindung …';
     }
   }
