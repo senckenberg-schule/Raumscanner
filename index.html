@@ -654,14 +654,56 @@ const AUTO_LOGOUT_H = 15, AUTO_LOGOUT_M = 20;
 
 async function performAutoLogout() {
   const todayStr = today();
-  const sData = lsJson('s_current');
-  const tData = lsJson('t_current');
-  const needS = !!(sData && sData.date === todayStr && sData.raum_id);
-  const needT = !!(tData && tData.date === todayStr && tData.raum_id);
-  if (!needS && !needT) return;
-  if (needS) await doLogout('student').catch(() => {});
-  if (needT) await doLogout('teacher').catch(() => {});
-  toast('Automatisch ausgeloggt – Schulende 15:20 Uhr');
+  const ts = new Date().toISOString();
+
+  // Lokalen Zustand dieses Geräts sofort löschen
+  ls('s_current', null);
+  ls('t_current', null);
+  refreshCurrentCard();
+  refreshTeacherCard();
+
+  // Alle aktiven Check-ins aus summary.json server-seitig abmelden
+  try {
+    const summaryUrl = CFG.base + '/' + CFG.summaryFile;
+    const r = await fetchWithTimeout(summaryUrl, {}, 12000);
+    if (!r.ok) return;
+    const summary = await r.json();
+    if (summary.date !== todayStr) return;
+
+    const checkins = Array.isArray(summary.checkins) ? summary.checkins : [];
+    const active = checkins.filter(c => c.raum_id);
+    if (!active.length) return;
+
+    // Jede Einzeldatei aktualisieren (fire-and-forget)
+    active.forEach(entry => {
+      const fname = entry._id || (entry.name ? sanitize(entry.name + '_' + (entry.klasse || '')) + '.json' : null);
+      if (!fname) return;
+      const fileUrl = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(fname);
+      fetch(fileUrl)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => data ? fetch(fileUrl, {
+          method: 'PUT', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({...data, raum_id: null, raum_name: 'Ausgeloggt', timestamp: ts})
+        }) : null)
+        .catch(() => {});
+    });
+
+    // summary.json sofort aktualisieren (awaited – für Lehreransicht)
+    await fetch(summaryUrl, {
+      method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({...summary, updated: ts,
+        checkins: checkins.map(c => c.raum_id ? {...c, raum_id: null, raum_name: 'Ausgeloggt', timestamp: ts} : c)
+      })
+    });
+
+    toast('Schulende: ' + active.length + (active.length === 1 ? ' Person' : ' Personen') + ' ausgeloggt');
+
+    if (currentRole === 'teacher' && teacherUnlocked && $('screen-t-overview').classList.contains('active')) {
+      setTimeout(loadDashboard, 800);
+    }
+  } catch(e) {
+    toast('Automatisch ausgeloggt – Schulende 15:20 Uhr');
+  }
 }
 
 function scheduleAutoLogout() {
