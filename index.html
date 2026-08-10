@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.9</title>
+  <title>RaumScanner V1.8</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -194,48 +194,6 @@
     .room-header{cursor:pointer;user-select:none}
     .collapse-arrow{font-size:11px;margin-left:6px;transition:transform .2s;display:inline-block}
     .collapse-arrow.closed{transform:rotate(-90deg)}
-
-    /* ── DARK MODE ── */
-    @media(prefers-color-scheme:dark){
-      :root{--bg:#1C1C1E;--card:#2C2C2E;--text:#FFFFFF;--text2:#EBEBF5;--text3:#8E8E93;--border:#38383A;--shadow:0 2px 12px rgba(0,0,0,.4);--shadow-md:0 4px 20px rgba(0,0,0,.55)}
-      .nav-header,.subtab-bar{background:rgba(28,28,30,.92)}
-      .form-input,.search-input,.pin-btn,.role-btn{background:var(--card);border-color:var(--border);color:var(--text)}
-      .btn-outline,.btn-outline-red{background:var(--card)}
-      .seg-control{background:var(--bg);border-color:var(--border)}
-      .seg-btn.active{background:var(--card)}
-      .modal-sheet{background:var(--card)}
-      .toast{background:rgba(58,58,60,.95)}
-      .warn-banner{background:#3D2A00;border-color:var(--orange)}
-      .warn-banner-text{color:#FFD060}
-    }
-
-    /* ── SCREEN TRANSITIONS ── */
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .screen.active{animation:fadeUp .26s cubic-bezier(.25,.46,.45,.94) both}
-
-    /* ── GRADIENT BUTTONS ── */
-    .btn-blue{background:linear-gradient(135deg,#007AFF 0%,#5856D6 100%);box-shadow:0 4px 14px rgba(0,122,255,.3)}
-    .btn-green{background:linear-gradient(135deg,#34C759 0%,#28A74A 100%);box-shadow:0 4px 14px rgba(52,199,89,.3)}
-    .btn:active{transform:scale(.97);opacity:.85}
-
-    /* ── SKELETON LOADER ── */
-    @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
-    .skeleton{border-radius:6px;background:linear-gradient(90deg,var(--border) 25%,#e8e8ea 50%,var(--border) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear}
-    @media(prefers-color-scheme:dark){.skeleton{background:linear-gradient(90deg,#38383A 25%,#48484A 50%,#38383A 75%);background-size:800px 100%}}
-
-    /* ── SCANNER IMPROVEMENTS ── */
-    .scanner-frame{position:relative;overflow:hidden}
-    .sc{position:absolute;width:26px;height:26px;border:3px solid white}
-    .sc-tl{top:6px;left:6px;border-right:none;border-bottom:none;border-radius:6px 0 0 0}
-    .sc-tr{top:6px;right:6px;border-left:none;border-bottom:none;border-radius:0 6px 0 0}
-    .sc-bl{bottom:6px;left:6px;border-right:none;border-top:none;border-radius:0 0 0 6px}
-    .sc-br{bottom:6px;right:6px;border-left:none;border-top:none;border-radius:0 0 6px 0}
-    .scanner-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,122,255,.9),transparent);animation:scanLine 2s ease-in-out infinite}
-    @keyframes scanLine{0%,100%{top:8%}50%{top:88%}}
-
-    /* ── PIN SPRING ── */
-    .pin-dot{transition:all .18s cubic-bezier(.34,1.56,.64,1)}
-    .pin-dot.filled{transform:scale(1.12)}
   </style>
 </head>
 <body>
@@ -287,7 +245,7 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9</div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.8</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -471,11 +429,7 @@
   <canvas id="scanner-canvas"></canvas>
   <div class="scanner-ui">
     <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:18px;text-shadow:0 1px 4px rgba(0,0,0,.5)" id="scanner-title">QR-Code scannen</div>
-    <div class="scanner-frame">
-      <div class="sc sc-tl"></div><div class="sc sc-tr"></div>
-      <div class="sc sc-bl"></div><div class="sc sc-br"></div>
-      <div class="scanner-line"></div>
-    </div>
+    <div class="scanner-frame"></div>
     <div class="scanner-hint" id="scanner-hint">Halte die Kamera auf den Raum-QR-Code</div>
   </div>
   <button class="scanner-cancel" onclick="closeScanner()">Abbrechen</button>
@@ -497,7 +451,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260611';
+const APP_VERSION = '20260602';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -514,9 +468,8 @@ const CFG = {
   base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
   folder: 'RaumScanner/checkins',
   summaryFile: 'RaumScanner/checkins/summary.json',
-  poll:        30000, // Lehrer-Dashboard: alle 30 Sek.
-  roPoll:      30000, // Raumübersicht Schüler: alle 30 Sek.
-  retentionMs: 14 * 24 * 60 * 60 * 1000, // 2 Wochen
+  poll:   30000, // Lehrer-Dashboard: alle 30 Sek.
+  roPoll: 30000, // Raumübersicht Schüler: alle 30 Sek. (war 10 Sek.)
 };
 const WORKER = 'https://nextcloud-proxy.stbauer81.workers.dev';
 // Zugangsdaten und PIN liegen jetzt nur im Cloudflare Worker (nicht mehr im Client)
@@ -538,54 +491,19 @@ CFG.apiKey = '2d6e903a2e2cde5533a9dbc79fd249489d6c018964f21b5a';
   };
 })()
 
-// ── CRYPTO (Pseudonymisierung) ───────────────────────────────────
-let _ckPromise = null;
-async function getCK() {
-  if (!_ckPromise) {
-    _ckPromise = (async () => {
-      const km = await crypto.subtle.importKey(
-        'raw', new TextEncoder().encode(CFG.apiKey), {name:'PBKDF2'}, false, ['deriveKey']
-      );
-      return crypto.subtle.deriveKey(
-        {name:'PBKDF2', salt:new TextEncoder().encode('RaumScanner-v2'), iterations:50000, hash:'SHA-256'},
-        km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
-      );
-    })();
-  }
-  return _ckPromise;
-}
-async function encryptStr(s) {
-  const key = await getCK();
-  const iv  = crypto.getRandomValues(new Uint8Array(12));
-  const ct  = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(s));
-  const buf = new Uint8Array(12 + ct.byteLength);
-  buf.set(iv, 0); buf.set(new Uint8Array(ct), 12);
-  return btoa(String.fromCharCode(...buf));
-}
-async function decryptStr(b64) {
-  try {
-    const key   = await getCK();
-    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    const plain = await crypto.subtle.decrypt(
-      {name:'AES-GCM', iv:bytes.slice(0,12)}, key, bytes.slice(12)
-    );
-    return new TextDecoder().decode(plain);
-  } catch { return '(?)'; }
-}
-async function hashFilename(s) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s + CFG.apiKey));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32);
-}
-
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
 const ROOMS = [
-  { id: 'LERNBUERO1',    name: 'Lernbüro 1',           capacity: null, emoji: '📚' },
-  { id: 'LERNBUERO2',    name: 'Lernbüro 2',           capacity: null, emoji: '📚' },
-  { id: 'LERNBUERO3',    name: 'Lernbüro 3',           capacity: null, emoji: '📚' },
-  { id: 'GRUPPENARBEIT', name: 'Gruppenarbeitsraum',   capacity: 20,   emoji: '👥' },
-  { id: 'AQUARIUM',      name: 'Aquarium',              capacity: 20,   emoji: '🐟' },
-  { id: 'CAFETERIA',     name: 'Cafeteria',             capacity: 20,   emoji: '☕' },
-  { id: 'LOUNGE',        name: 'Schülerlounge',         capacity: 10,   emoji: '🛋️' },
+  { id: 'LERNBUERO1',     name: 'Lernbüro 1',            capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO2',     name: 'Lernbüro 2',            capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO3',     name: 'Lernbüro 3',            capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO4',     name: 'Lernbüro 4',            capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO5',     name: 'Lernbüro 5',            capacity: null, emoji: '📚' },
+  { id: 'GRUPPENARBEIT',  name: 'Gruppenarbeitsraum',    capacity: 20,   emoji: '👥' },
+  { id: 'GRUPPENARBEIT2', name: 'Gruppenarbeitsraum 2',  capacity: 20,   emoji: '👥' },
+  { id: 'AQUARIUM',       name: 'Aquarium',               capacity: 20,   emoji: '🐟' },
+  { id: 'MEDIENRAUM',     name: 'Medienraum',             capacity: 20,   emoji: '🖥️' },
+  { id: 'CAFETERIA',      name: 'Cafeteria',              capacity: 20,   emoji: '☕' },
+  { id: 'LOUNGE',         name: 'Schülerlounge',          capacity: 10,   emoji: '🛋️' },
 ];
 
 // ── STATE ────────────────────────────────────────────────────────
@@ -630,12 +548,6 @@ function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
-function fetchWithTimeout(url, opts, ms) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), ms || 12000);
-  return fetch(url, Object.assign({}, opts || {}, {signal: ctrl.signal}))
-    .finally(() => clearTimeout(id));
-}
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
@@ -649,72 +561,6 @@ function hideBackBtn() {
   $('nav-version').style.display = '';
 }
 
-// ── AUTO-LOGOUT (Schulende 15:20 Uhr) ───────────────────────────
-const AUTO_LOGOUT_H = 15, AUTO_LOGOUT_M = 20;
-
-async function performAutoLogout() {
-  const todayStr = today();
-  const ts = new Date().toISOString();
-
-  // Lokalen Zustand dieses Geräts sofort löschen
-  ls('s_current', null);
-  ls('t_current', null);
-  refreshCurrentCard();
-  refreshTeacherCard();
-
-  // Alle aktiven Check-ins aus summary.json server-seitig abmelden
-  try {
-    const summaryUrl = CFG.base + '/' + CFG.summaryFile;
-    const r = await fetchWithTimeout(summaryUrl, {}, 12000);
-    if (!r.ok) return;
-    const summary = await r.json();
-    if (summary.date !== todayStr) return;
-
-    const checkins = Array.isArray(summary.checkins) ? summary.checkins : [];
-    const active = checkins.filter(c => c.raum_id);
-    if (!active.length) return;
-
-    // Jede Einzeldatei aktualisieren (fire-and-forget)
-    active.forEach(entry => {
-      const fname = entry._id || (entry.name ? sanitize(entry.name + '_' + (entry.klasse || '')) + '.json' : null);
-      if (!fname) return;
-      const fileUrl = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(fname);
-      fetch(fileUrl)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => data ? fetch(fileUrl, {
-          method: 'PUT', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({...data, raum_id: null, raum_name: 'Ausgeloggt', timestamp: ts})
-        }) : null)
-        .catch(() => {});
-    });
-
-    // summary.json sofort aktualisieren (awaited – für Lehreransicht)
-    await fetch(summaryUrl, {
-      method: 'PUT', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({...summary, updated: ts,
-        checkins: checkins.map(c => c.raum_id ? {...c, raum_id: null, raum_name: 'Ausgeloggt', timestamp: ts} : c)
-      })
-    });
-
-    toast('Schulende: ' + active.length + (active.length === 1 ? ' Person' : ' Personen') + ' ausgeloggt');
-
-    if (currentRole === 'teacher' && teacherUnlocked && $('screen-t-overview').classList.contains('active')) {
-      setTimeout(loadDashboard, 800);
-    }
-  } catch(e) {
-    toast('Automatisch ausgeloggt – Schulende 15:20 Uhr');
-  }
-}
-
-function scheduleAutoLogout() {
-  const now = new Date();
-  const cut = new Date(now);
-  cut.setHours(AUTO_LOGOUT_H, AUTO_LOGOUT_M, 0, 0);
-  const ms = cut - now;
-  if (ms <= 0) { performAutoLogout(); return; }
-  setTimeout(performAutoLogout, ms);
-}
-
 // ── BOOT ────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   $('today-date').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -725,7 +571,6 @@ window.addEventListener('load', () => {
   $('subtabs-teacher').classList.remove('visible');
   hideBackBtn();
   $('nav-title').textContent = 'RaumScanner';
-  scheduleAutoLogout();
 });
 
 // ── STARTSCREEN ──────────────────────────────────────────────────
@@ -906,11 +751,11 @@ function updatePinDots() {
 }
 async function checkPin() {
   try {
-    const r = await fetchWithTimeout(WORKER + '/api/verify-pin', {
+    const r = await fetch(WORKER + '/api/verify-pin', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({pin: pinVal})
-    }, 10000);
+    });
     const data = await r.json();
     if (data.ok) {
       teacherUnlocked = true;
@@ -976,64 +821,43 @@ async function doCheckin(raumId, raumName, ctx) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-w" style="width:18px;height:18px"></div> Wird gespeichert...'; }
 
   try {
-    const fileKey = sanitize(name + '_' + kl);
-    let filename;
-    if (isTeacher) {
-      filename = fileKey + '.json';
-    } else {
-      // Lernende: gehashter Dateiname (kein Klarname im Verzeichnis)
-      const hash = await hashFilename(fileKey);
-      filename = hash + '.json';
-      ls('s_fileHash', filename); // merken für Logout & Tagesansicht
-    }
+    const filename = sanitize(name + '_' + kl) + '.json';
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
 
-    // Bestehende Datei laden (für History-Array)
     let existing = null;
     try {
       const r = await fetch(url);
-      if (r.ok) {
-        const raw = await r.json();
-        if (raw.enc) { raw.name = await decryptStr(raw.name_enc); raw.klasse = await decryptStr(raw.klasse_enc); }
-        existing = raw;
-      }
+      if (r.ok) existing = await r.json();
     } catch(e) {}
 
     const ts = new Date().toISOString();
     const todayStr = today();
     let history = [];
     if (existing && existing.date === todayStr) history = existing.history || [];
-    history.push({raum_id:raumId, raum_name:raumName, timestamp:ts});
 
-    // Server-Objekt: Lernende verschlüsselt, Lernbegleiter Klartext
-    let serverCheckin;
-    if (isTeacher) {
-      serverCheckin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
-      const fach = ls('t_subject'); if (fach) serverCheckin.fach = fach;
-    } else {
-      const [nameEnc, klasseEnc] = await Promise.all([encryptStr(name), encryptStr(kl)]);
-      serverCheckin = {enc:true, name_enc:nameEnc, klasse_enc:klasseEnc, type, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
-    }
+    const entry = {raum_id:raumId, raum_name:raumName, timestamp:ts};
+    history.push(entry);
 
-    // Lokales Objekt (immer Klartext, nur im Browser)
-    const localCheckin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, _fileHash:filename};
-    if (serverCheckin.fach) localCheckin.fach = serverCheckin.fach;
+    const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
+    if (isTeacher) { const fach = ls('t_subject'); if (fach) checkin.fach = fach; }
 
-    // Bei 423: bis zu 3 Versuche
+    // Bei 423 (Ordner/Datei gesperrt): bis zu 3 Versuche mit steigenden Pausen
     let resp;
     for (let attempt = 0; attempt < 3; attempt++) {
       if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
-      resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(serverCheckin,null,2)});
+      resp = await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(checkin,null,2)});
       if (resp.status !== 423) break;
     }
     if (!resp.ok) {
-      const msg = resp.status === 423 ? 'Server kurz ausgelastet – bitte in 5 Sekunden nochmal scannen' : 'HTTP ' + resp.status;
+      const msg = resp.status === 423
+        ? 'Server kurz ausgelastet – bitte in 5 Sekunden nochmal scannen'
+        : 'HTTP ' + resp.status;
       throw new Error(msg);
     }
 
-    if (isTeacher) ls('t_current', localCheckin);
-    else           ls('s_current', localCheckin);
-    await updateSummary(localCheckin).catch(()=>{});
+    if (isTeacher) ls('t_current', checkin);
+    else           ls('s_current', checkin);
+    await updateSummary(checkin).catch(()=>{});
 
     $('suc-title').textContent = isTeacher ? 'Eingeloggt!' : 'Eingecheckt!';
     $('suc-room').textContent = '📍 ' + raumName;
@@ -1063,32 +887,14 @@ async function doLogout(ctx) {
   if (!name) { toast('Kein aktiver Check-in'); return; }
 
   try {
-    // Lernende: gespeicherten Hash verwenden, Fallback auf Klarname (Altdaten)
-    const filename = !isTeacher
-      ? (ls('s_fileHash') || sanitize(name + '_' + kl) + '.json')
-      : sanitize(name + '_' + kl) + '.json';
+    const filename = sanitize(name + '_' + kl) + '.json';
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
-
     let existing = null;
     try { const r = await fetch(url); if(r.ok) existing = await r.json(); } catch(e){}
     if (existing) {
-      // Entschlüsseln falls nötig
-      if (existing.enc) {
-        existing.name = await decryptStr(existing.name_enc);
-        existing.klasse = await decryptStr(existing.klasse_enc);
-      }
-      const ts = new Date().toISOString();
-      let serverUpdate;
-      if (existing.enc) {
-        const [ne, ke] = await Promise.all([encryptStr(name), encryptStr(kl)]);
-        serverUpdate = {...existing, name_enc:ne, klasse_enc:ke, raum_id:null, raum_name:'Ausgeloggt', timestamp:ts};
-        delete serverUpdate.name; delete serverUpdate.klasse;
-      } else {
-        serverUpdate = {...existing, raum_id:null, raum_name:'Ausgeloggt', timestamp:ts};
-      }
-      await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(serverUpdate,null,2)});
-      const localEntry = {type:existing.type||'schueler', name, klasse:kl, raum_id:null, raum_name:'Ausgeloggt', timestamp:ts, date:existing.date||today(), _fileHash:filename};
-      await updateSummary(localEntry).catch(()=>{});
+      existing.raum_id = null; existing.raum_name = 'Ausgeloggt'; existing.timestamp = new Date().toISOString();
+      await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing,null,2)});
+      await updateSummary(existing).catch(()=>{});
     }
     if (isTeacher) { ls('t_current', null); refreshTeacherCard(); toast('Ausgeloggt'); }
     else { ls('s_current', null); refreshCurrentCard(); toast('Ausgeloggt'); loadRoomOverview(); }
@@ -1102,19 +908,9 @@ async function manualLogout() {
     let data = null;
     const r = await fetch(url); if(r.ok) data = await r.json();
     if (data) {
-      if (data.enc) { data.name = await decryptStr(data.name_enc); data.klasse = await decryptStr(data.klasse_enc); }
-      const ts = new Date().toISOString();
-      let serverData;
-      if (data.enc) {
-        const [ne, ke] = await Promise.all([encryptStr(data.name), encryptStr(data.klasse)]);
-        serverData = {...data, name_enc:ne, klasse_enc:ke, raum_id:null, raum_name:'Ausgeloggt', timestamp:ts};
-        delete serverData.name; delete serverData.klasse;
-      } else {
-        serverData = {...data, raum_id:null, raum_name:'Ausgeloggt', timestamp:ts};
-      }
-      await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(serverData,null,2)});
-      const localEntry = {type:data.type||'schueler', name:data.name, klasse:data.klasse, raum_id:null, raum_name:'Ausgeloggt', timestamp:ts, date:data.date||today(), _fileHash:currentModalFile};
-      await updateSummary(localEntry).catch(()=>{});
+      data.raum_id = null; data.raum_name = 'Ausgeloggt'; data.timestamp = new Date().toISOString();
+      await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data,null,2)});
+      await updateSummary(data).catch(()=>{});
     }
     toast('Lernende ausgeloggt'); closeModal(); loadDashboard();
   } catch(e) { toast('Fehler'); }
@@ -1151,73 +947,63 @@ async function updateSummary(entry) {
       const data = await r.json();
       if (data.date === todayStr) {
         existing = data;
-        if (!Array.isArray(existing.checkins)) existing.checkins = Object.values(existing.checkins || {});
+        // Objekt-Format in Array umwandeln falls nötig
+        if (!Array.isArray(existing.checkins)) {
+          existing.checkins = Object.values(existing.checkins || {});
+        }
       }
     }
   } catch {}
-
-  const isStudent = entry.type !== 'lehrer';
-  // Lernende in summary anonymisieren: nur ID (Hash/Dateiname), Raum, Zeit
-  // Lernbegleiter: Klarname (wird in Raumübersicht gezeigt)
-  const key = isStudent
-    ? (entry._fileHash || sanitize(entry.name + '_' + (entry.klasse || '')))
-    : sanitize(entry.name + '_' + (entry.klasse || ''));
-  const idx = existing.checkins.findIndex(c =>
-    (c._id || sanitize(c.name + '_' + (c.klasse || ''))) === key
-  );
-  let se;
-  if (isStudent) {
-    const [ne, ke] = await Promise.all([encryptStr(entry.name), encryptStr(entry.klasse||'')]);
-    se = {type:entry.type, _id:entry._fileHash||sanitize(entry.name+'_'+(entry.klasse||'')),
-      name_enc:ne, klasse_enc:ke, raum_id:entry.raum_id||null, raum_name:entry.raum_name||null,
-      timestamp:entry.timestamp, date:entry.date};
-  } else {
-    se = {type:entry.type, name:entry.name, klasse:entry.klasse,
-      raum_id:entry.raum_id||null, raum_name:entry.raum_name||'',
-      timestamp:entry.timestamp, date:entry.date, ...(entry.fach?{fach:entry.fach}:{})};
-  }
+  const key = sanitize(entry.name + '_' + (entry.klasse || ''));
+  const idx = existing.checkins.findIndex(c => sanitize(c.name + '_' + (c.klasse || '')) === key);
+  const se = {
+    type: entry.type, name: entry.name, klasse: entry.klasse,
+    raum_id: entry.raum_id || null, raum_name: entry.raum_name || '',
+    timestamp: entry.timestamp, date: entry.date,
+    ...(entry.fach ? {fach: entry.fach} : {})
+  };
   if (idx >= 0) existing.checkins[idx] = se; else existing.checkins.push(se);
   existing.updated = new Date().toISOString();
   await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing)});
 }
 
-// Lehrer lesen summary.json (1 Request) und entschlüsseln Namen client-seitig ──
+// Lehrer lesen alle Einzeldateien (immer korrekt, kein Race Condition) ──
 async function getAllCheckins() {
-  const url = CFG.base + '/' + CFG.summaryFile;
-  const r = await fetchWithTimeout(url, {}, 15000);
-  if (r.status === 404) { await ensureFolder(); return []; }
-  if (!r.ok) throw new Error('Verbindung fehlgeschlagen (' + r.status + ')');
-  const summary = await r.json();
-  if (summary.date !== today()) return [];
-  const checkins = Array.isArray(summary.checkins) ? summary.checkins : Object.values(summary.checkins || {});
-  return Promise.all(checkins.map(async entry => {
-    const result = {...entry};
-    if (entry.type !== 'lehrer') {
-      if (entry.name_enc) {
-        result.name   = await decryptStr(entry.name_enc);
-        result.klasse = await decryptStr(entry.klasse_enc || '');
-      } else if (!result.name) {
-        result.name = '?'; result.klasse = '';
-      }
-      result._filename = entry._id;
-    }
-    return result;
-  }));
+  const url = CFG.base + '/' + CFG.folder + '/';
+  const r = await fetch(url, {
+    method: 'PROPFIND',
+    headers: {'Depth':'1', 'Content-Type':'application/xml'},
+    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
+  });
+  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
+  const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
+  const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
+    const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
+    const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
+    return {href, lm};
+  }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
+
+  const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
+  for (let i = 0; i < toFetch.length; i += 6) {
+    const chunk = toFetch.slice(i, i + 6);
+    await Promise.all(chunk.map(async f => {
+      try {
+        const fr = await fetch(WORKER + f.href);
+        if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
+      } catch(e) {}
+    }));
+  }
+  return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
 }
 
 // Lehrer schreibt nach jedem Poll eine frische summary.json für Schüler ──
 async function writeSummary(all) {
-  const checkins = all.map(c => c.type === 'lehrer' ? {
+  const checkins = all.map(c => ({
     type: c.type, name: c.name, klasse: c.klasse,
     raum_id: c.raum_id || null, raum_name: c.raum_name || '',
     timestamp: c.timestamp, date: c.date,
-    ...(c.fach ? {fach: c.fach} : {}),
-  } : {
-    type: c.type, _id: c._filename || c._id,
-    ...(c.name_enc ? {name_enc: c.name_enc, klasse_enc: c.klasse_enc} : {}),
-    raum_id: c.raum_id || null, raum_name: c.raum_name || null,
-    timestamp: c.timestamp, date: c.date,
-  });
+    ...(c.fach ? {fach: c.fach} : {})
+  }));
   const summary = {date: today(), updated: new Date().toISOString(), checkins};
   await fetch(CFG.base + '/' + CFG.summaryFile, {
     method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(summary)
@@ -1344,14 +1130,8 @@ function startRoTimer() {
 function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 
 // ── LERNBEGLEITER DASHBOARD ──────────────────────────────────────
-function showSkeleton() {
-  $('t-dashboard').innerHTML = '<div class="empty"><div class="spinner" style="width:28px;height:28px;margin:0 auto 12px"></div><div style="font-size:14px;color:var(--text3)">Lädt …</div></div>';
-}
-
 let dashboardErrorCount = 0;
 async function loadDashboard() {
-  // Skeleton nur beim ersten Laden zeigen (solange noch keine Daten vorhanden)
-  if (!lastCheckins.length) showSkeleton();
   try {
     const all = await getAllCheckins();
     lastCheckins = all;
@@ -1366,12 +1146,10 @@ async function loadDashboard() {
   } catch(e) {
     dashboardErrorCount++;
     if (dashboardErrorCount >= 3 || !lastCheckins.length) {
-      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Keine Verbindung</div><div style="font-size:13px;color:var(--text3);margin-bottom:16px">Bitte Internetverbindung prüfen.</div><button class="btn btn-blue" onclick="dashboardErrorCount=0;loadDashboard()" style="max-width:220px;margin:0 auto">↻ Neu laden</button></div>`;
+      // Nach 3 Fehlern in Folge oder wenn noch keine Daten: Fehlermeldung
+      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Wird erneut versucht …</div></div>`;
     } else {
-      // Alte Daten weiter anzeigen statt Skeleton stehen zu lassen
-      const todayStr = today();
-      const active = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
-      renderDashboard(active.filter(c=>c.type==='lehrer'), active.filter(c=>c.type!=='lehrer'), searchQuery);
+      // Alte Daten weiter anzeigen, nur Status aktualisieren
       $('t-last-update').textContent = '⚠️ Verbindung …';
     }
   }
@@ -1427,7 +1205,7 @@ function renderDashboard(teachers, students, query) {
   if (q) {
     // Eingecheckte Lernende, die passen
     filteredStudents.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
-      const fname = s._filename || sanitize(s.name+'_'+(s.klasse||''))+'.json';
+      const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
       html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-s">${esc(initials(s.name))}</div>
         <div class="card-content">
@@ -1440,7 +1218,7 @@ function renderDashboard(teachers, students, query) {
     const filteredNotIn = notCheckedIn.filter(s =>
       s.name.toLowerCase().includes(q) || (s.klasse||'').toLowerCase().includes(q));
     filteredNotIn.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
-      const fname = s._filename || sanitize(s.name+'_'+(s.klasse||''))+'.json';
+      const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
       html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-absent">${esc(initials(s.name))}</div>
         <div class="card-content">
@@ -1488,7 +1266,7 @@ function renderDashboard(teachers, students, query) {
       </div>
       <div id="rbody-${cKey}" style="display:${bodyDisplay}">`;
     studentsArr.forEach(s => {
-      const fname = s._filename || sanitize(s.name+'_'+(s.klasse||''))+'.json';
+      const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
       h += `<div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-s">${esc(initials(s.name))}</div>
         <div class="card-content"><div class="person-name">${esc(s.name)}</div><div class="person-meta">Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div></div>
@@ -1666,15 +1444,11 @@ async function loadTodayView() {
     const todayStr = today();
 
     // Eigene History aus Einzeldatei (summary.json enthält kein history-Array)
-    // Gespeicherten Hash verwenden, Fallback auf Klarname (Altdaten)
-    const filename = ls('s_fileHash') || sanitize(name + '_' + kl) + '.json';
+    const filename = sanitize(name + '_' + kl) + '.json';
     let own = null;
     try {
       const fr = await fetch(CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename));
-      if (fr.ok) {
-        own = await fr.json();
-        if (own.enc) { own.name = await decryptStr(own.name_enc); own.klasse = await decryptStr(own.klasse_enc); }
-      }
+      if (fr.ok) own = await fr.json();
     } catch {}
     const hist = own && own.date === todayStr ? (own.history||[]).slice().reverse() : [];
 
