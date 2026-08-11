@@ -382,7 +382,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:7px">
           <span class="pulse"></span>
-          <span style="font-size:13px;color:var(--text3)">Live · alle 10 Sek.</span>
+          <span style="font-size:13px;color:var(--text3)">Live · alle 30 Sek.</span>
         </div>
         <span style="font-size:13px;color:var(--text3)" id="t-last-update">—</span>
       </div>
@@ -1132,8 +1132,24 @@ function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 // ── LERNBEGLEITER DASHBOARD ──────────────────────────────────────
 let dashboardErrorCount = 0;
 async function loadDashboard() {
+  // Schnell-Render: summary.json (1 GET) parallel zum langsamen PROPFIND starten
+  const quickPromise = getSummary().catch(() => []);
+  const fullPromise  = getAllCheckins();
+
+  // Sofort anzeigen, was summary.json hat – nur wenn Dashboard noch nie geladen
+  if (!lastCheckins.length) {
+    const quick = await quickPromise;
+    if (quick.length) {
+      const ts = today();
+      const qa = quick.filter(c => c.date === ts && c.raum_id);
+      renderDashboard(qa.filter(c => c.type === 'lehrer'), qa.filter(c => c.type !== 'lehrer'), searchQuery);
+      $('t-last-update').textContent = '⏳ Wird aktualisiert …';
+    }
+  }
+
+  // Vollständige Daten via PROPFIND + Delta-Cache
   try {
-    const all = await getAllCheckins();
+    const all = await fullPromise;
     lastCheckins = all;
     writeSummary(all); // Frische summary.json für Schüleransicht schreiben
     dashboardErrorCount = 0;
