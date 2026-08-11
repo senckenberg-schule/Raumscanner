@@ -970,11 +970,23 @@ async function updateSummary(entry) {
 // Lehrer lesen alle Einzeldateien (immer korrekt, kein Race Condition) ──
 async function getAllCheckins() {
   const url = CFG.base + '/' + CFG.folder + '/';
-  const r = await fetch(url, {
-    method: 'PROPFIND',
-    headers: {'Depth':'1', 'Content-Type':'application/xml'},
-    body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>'
-  });
+
+  // AbortController: PROPFIND nach 20 Sek. abbrechen (kein Default-Timeout im Browser)
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 20000);
+
+  let r;
+  try {
+    r = await fetch(url, {
+      method: 'PROPFIND',
+      headers: {'Depth':'1', 'Content-Type':'application/xml'},
+      body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>',
+      signal: ctrl.signal
+    });
+  } finally {
+    clearTimeout(tid);
+  }
+
   if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
   const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
   const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
@@ -1161,12 +1173,15 @@ async function loadDashboard() {
     $('t-last-update').textContent = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   } catch(e) {
     dashboardErrorCount++;
-    if (dashboardErrorCount >= 3 || !lastCheckins.length) {
-      // Nach 3 Fehlern in Folge oder wenn noch keine Daten: Fehlermeldung
-      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Wird erneut versucht …</div></div>`;
+    if (lastCheckins.length > 0) {
+      // Gecachte Daten neu rendern – Spinner verschwindet, alte Ansicht bleibt
+      const todayStr = today();
+      const active   = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+      renderDashboard(active.filter(c => c.type === 'lehrer'), active.filter(c => c.type !== 'lehrer'), searchQuery);
+      $('t-last-update').textContent = '⚠️ Verbindung verloren – zeige letzte Daten';
     } else {
-      // Alte Daten weiter anzeigen, nur Status aktualisieren
-      $('t-last-update').textContent = '⚠️ Verbindung …';
+      // Noch keine Daten: Fehlermeldung anzeigen (ersetzt immer den Spinner)
+      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Netz prüfen – wird erneut versucht …</div></div>`;
     }
   }
 }
