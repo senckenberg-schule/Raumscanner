@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.9</title>
+  <title>RaumScanner V1.9.1</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -248,7 +248,7 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9</div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9.1</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -454,7 +454,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260812';
+const APP_VERSION = '20260812b';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -546,7 +546,7 @@ function fmtClock(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr';
 }
-function initials(name) { return name.split(' ').map(n=>n[0]||'').join('').substring(0,2).toUpperCase(); }
+function initials(name) { return String(name||'?').split(' ').map(n=>n[0]||'').join('').substring(0,2).toUpperCase(); }
 function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
@@ -936,7 +936,8 @@ async function getSummary() {
   if (data.date !== today()) return [];
   const c = data.checkins || [];
   // Beide Formate unterstützen: Array (neu) und Objekt (Altdaten)
-  return Array.isArray(c) ? c : Object.values(c);
+  const list = Array.isArray(c) ? c : Object.values(c);
+  return list.filter(validCheckin);
 }
 
 // Summary nach Check-in / Logout aktualisieren ────────────────────
@@ -1007,10 +1008,16 @@ async function getAllCheckins() {
         }
       }));
     }
-    return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
+    return fileInfos.map(f => fileCache.get(f.href)?.data).filter(validCheckin);
   } finally {
     clearTimeout(tid); // immer aufräumen
   }
+}
+
+// Schützt das Rendering vor kaputten/unvollständigen JSON-Dateien.
+// Ein einziger Eintrag ohne "name" würde sonst renderDashboard abstürzen lassen.
+function validCheckin(c) {
+  return !!c && typeof c === 'object' && typeof c.name === 'string' && c.name.length > 0;
 }
 
 // Lehrer schreibt nach jedem Poll eine frische summary.json für Schüler ──
@@ -1119,7 +1126,7 @@ function renderRoomOverview(all) {
   if (teachers.length > 0) {
     html += '<div class="sec-header" style="margin-top:14px">Lernbegleiter heute</div>';
     html += '<div class="card">';
-    teachers.slice().sort((a,b) => a.name.localeCompare(b.name)).forEach(t => {
+    teachers.slice().sort((a,b) => String(a.name||'').localeCompare(String(b.name||''))).forEach(t => {
       html += `<div class="card-row">
         <div class="avatar avatar-t" style="width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">${esc(initials(t.name))}</div>
         <div class="card-content">
@@ -1148,6 +1155,20 @@ function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 
 // ── LERNBEGLEITER DASHBOARD ──────────────────────────────────────
 let dashboardErrorCount = 0;
+// Rendert und fängt JEDEN Fehler ab – der Spinner wird immer ersetzt.
+// Ohne diesen Schutz würde ein Absturz im Rendering (z.B. defekte Check-in-Datei)
+// den Spinner endlos weiterdrehen lassen.
+function safeRender(teachers, students, query) {
+  try {
+    renderDashboard(teachers, students, query);
+    return true;
+  } catch(err) {
+    console.error('renderDashboard fehlgeschlagen:', err);
+    $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Anzeigefehler</div><div style="font-size:13px;color:var(--text3)">${esc(err && err.message || 'Unbekannter Fehler')}</div></div>`;
+    return false;
+  }
+}
+
 async function loadDashboard() {
   // Schnell-Render: summary.json fire-and-forget (blockiert loadDashboard NICHT)
   if (!lastCheckins.length) {
@@ -1156,8 +1177,9 @@ async function loadDashboard() {
       if (!$('t-dashboard').querySelector('.spinner')) return; // Vollständige Daten schon da
       const ts = today();
       const qa = quick.filter(c => c.date === ts && c.raum_id);
-      renderDashboard(qa.filter(c => c.type === 'lehrer'), qa.filter(c => c.type !== 'lehrer'), searchQuery);
-      $('t-last-update').textContent = '⏳ Wird aktualisiert …';
+      if (safeRender(qa.filter(c => c.type === 'lehrer'), qa.filter(c => c.type !== 'lehrer'), searchQuery)) {
+        $('t-last-update').textContent = '⏳ Wird aktualisiert …';
+      }
     }).catch(() => {});
   }
 
@@ -1171,19 +1193,24 @@ async function loadDashboard() {
     const active   = all.filter(c => c.date === todayStr && c.raum_id);
     const teachers = active.filter(c => c.type === 'lehrer');
     const students = active.filter(c => c.type !== 'lehrer');
-    renderDashboard(teachers, students, searchQuery);
-    $('t-last-update').textContent = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    if (safeRender(teachers, students, searchQuery)) {
+      $('t-last-update').textContent = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
   } catch(e) {
+    console.error('loadDashboard fehlgeschlagen:', e);
     dashboardErrorCount++;
-    if (lastCheckins.length > 0) {
+    const todayStr = today();
+    const active   = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+    if (active.length > 0) {
       // Gecachte Daten neu rendern – Spinner verschwindet, alte Ansicht bleibt
-      const todayStr = today();
-      const active   = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
-      renderDashboard(active.filter(c => c.type === 'lehrer'), active.filter(c => c.type !== 'lehrer'), searchQuery);
-      $('t-last-update').textContent = '⚠️ Verbindung verloren – zeige letzte Daten';
+      if (safeRender(active.filter(c => c.type === 'lehrer'), active.filter(c => c.type !== 'lehrer'), searchQuery)) {
+        $('t-last-update').textContent = '⚠️ Verbindung verloren – zeige letzte Daten';
+      }
     } else {
       // Noch keine Daten: Fehlermeldung anzeigen (ersetzt immer den Spinner)
-      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">Netz prüfen – wird erneut versucht …</div></div>`;
+      const msg = (e && e.name === 'AbortError') ? 'Zeitüberschreitung (20 Sek.)' : esc(e && e.message || 'Unbekannter Fehler');
+      $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">${msg}<br>Wird erneut versucht …</div></div>`;
+      $('t-last-update').textContent = '⚠️ Fehler';
     }
   }
 }
@@ -1195,7 +1222,7 @@ function renderDashboard(teachers, students, query) {
 
   const filteredStudents = q
     ? students.filter(s =>
-        s.name.toLowerCase().includes(q) ||
+        String(s.name||'').toLowerCase().includes(q) ||
         (s.klasse||'').toLowerCase().includes(q) ||
         (s.raum_name||'').toLowerCase().includes(q) ||
         (s.raum_id||'').toLowerCase().includes(q))
@@ -1222,7 +1249,7 @@ function renderDashboard(teachers, students, query) {
 
   if (teachers.length && !q) {
     html += `<div class="room-card"><div class="room-header purple">👨‍🏫 <span class="room-title">Lernbegleiter</span><span class="room-count">${teachers.length}</span></div>`;
-    teachers.sort((a,b)=>a.name.localeCompare(b.name)).forEach(t => {
+    teachers.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''))).forEach(t => {
       const fname = sanitize(t.name+'_lehrer')+'.json';
       html += `<div class="person-row" data-file="${esc(fname)}" data-name="${esc(t.name)}">
         <div class="avatar avatar-t">${esc(initials(t.name))}</div>
@@ -1237,7 +1264,7 @@ function renderDashboard(teachers, students, query) {
 
   if (q) {
     // Eingecheckte Lernende, die passen
-    filteredStudents.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+    filteredStudents.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''))).forEach(s => {
       const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
       html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-s">${esc(initials(s.name))}</div>
@@ -1249,8 +1276,8 @@ function renderDashboard(teachers, students, query) {
     });
     // Nicht eingecheckte Lernende, die zur Suche passen
     const filteredNotIn = notCheckedIn.filter(s =>
-      s.name.toLowerCase().includes(q) || (s.klasse||'').toLowerCase().includes(q));
-    filteredNotIn.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+      String(s.name||'').toLowerCase().includes(q) || (s.klasse||'').toLowerCase().includes(q));
+    filteredNotIn.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''))).forEach(s => {
       const fname = sanitize(s.name+'_'+(s.klasse||''))+'.json';
       html += `<div class="room-card"><div class="person-row" data-file="${esc(fname)}" data-name="${esc(s.name)}">
         <div class="avatar avatar-absent">${esc(initials(s.name))}</div>
@@ -1284,7 +1311,7 @@ function renderDashboard(teachers, students, query) {
       roomMap[k].students.push(s);
     }
   });
-  [roomMap, lernbueroMap].forEach(m => Object.values(m).forEach(r => r.students.sort((a,b)=>a.name.localeCompare(b.name))));
+  [roomMap, lernbueroMap].forEach(m => Object.values(m).forEach(r => r.students.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')))));
 
   function roomCard(key, icon, color, roomName, count, studentsArr) {
     const cKey = sanitize(key);
@@ -1348,7 +1375,7 @@ function renderDashboard(teachers, students, query) {
         <span class="collapse-arrow ${arrow}">▼</span>
       </div>
       <div id="rbody-${cKey}" style="display:${bodyDisplay}">`;
-    notCheckedIn.sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+    notCheckedIn.sort((a,b) => String(a.name||'').localeCompare(String(b.name||''))).forEach(s => {
       const fname = sanitize(s.name + '_' + (s.klasse||'')) + '.json';
       const zuletzt = s.date === todayStr
         ? 'Heute ausgeloggt · ' + fmtTime(s.timestamp)
@@ -1519,7 +1546,7 @@ async function loadTodayView() {
     html += '<div class="sec-header">Wo sind die Lernbegleiter?</div>';
     if (activeTeachers.length) {
       html += '<div class="card">';
-      activeTeachers.sort((a,b)=>a.name.localeCompare(b.name)).forEach(t => {
+      activeTeachers.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''))).forEach(t => {
         html += `<div class="card-row">
           <div class="avatar avatar-t" style="width:36px;height:36px;border-radius:50%">${esc(initials(t.name))}</div>
           <div class="card-content">
