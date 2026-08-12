@@ -2,6 +2,9 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -971,41 +974,43 @@ async function updateSummary(entry) {
 async function getAllCheckins() {
   const url = CFG.base + '/' + CFG.folder + '/';
 
-  // AbortController: PROPFIND nach 20 Sek. abbrechen (kein Default-Timeout im Browser)
+  // AbortController deckt PROPFIND + alle Einzel-Fetches ab (20s Gesamtlimit)
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 20000);
 
-  let r;
   try {
-    r = await fetch(url, {
+    const r = await fetch(url, {
       method: 'PROPFIND',
       headers: {'Depth':'1', 'Content-Type':'application/xml'},
       body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:getlastmodified/></d:prop></d:propfind>',
       signal: ctrl.signal
     });
+
+    if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
+    const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
+    const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
+      const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
+      const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
+      return {href, lm};
+    }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
+
+    const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
+    for (let i = 0; i < toFetch.length; i += 6) {
+      const chunk = toFetch.slice(i, i + 6);
+      await Promise.all(chunk.map(async f => {
+        try {
+          const fr = await fetch(WORKER + f.href, { signal: ctrl.signal });
+          if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
+        } catch(e) {
+          if (e.name === 'AbortError') throw e; // Timeout weitergeben → stoppt alle Chunks
+          // Einzelne Datei-Fehler (404 etc.) schlucken
+        }
+      }));
+    }
+    return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
   } finally {
-    clearTimeout(tid);
+    clearTimeout(tid); // immer aufräumen
   }
-
-  if (!r.ok) { if (r.status === 404) { await ensureFolder(); return []; } throw new Error('PROPFIND ' + r.status); }
-  const doc = new DOMParser().parseFromString(await r.text(), 'application/xml');
-  const fileInfos = Array.from(doc.querySelectorAll('response')).map(resp => {
-    const href = decodeURIComponent((resp.querySelector('href')?.textContent || '').trim());
-    const lm   = (resp.querySelector('getlastmodified')?.textContent || '').trim();
-    return {href, lm};
-  }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
-
-  const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
-  for (let i = 0; i < toFetch.length; i += 6) {
-    const chunk = toFetch.slice(i, i + 6);
-    await Promise.all(chunk.map(async f => {
-      try {
-        const fr = await fetch(WORKER + f.href);
-        if (fr.ok) fileCache.set(f.href, {data: await fr.json(), lm: f.lm});
-      } catch(e) {}
-    }));
-  }
-  return fileInfos.map(f => fileCache.get(f.href)?.data).filter(Boolean);
 }
 
 // Lehrer schreibt nach jedem Poll eine frische summary.json für Schüler ──
@@ -1144,24 +1149,21 @@ function stopRoTimer() { if(roTimer){clearInterval(roTimer);roTimer=null;} }
 // ── LERNBEGLEITER DASHBOARD ──────────────────────────────────────
 let dashboardErrorCount = 0;
 async function loadDashboard() {
-  // Schnell-Render: summary.json (1 GET) parallel zum langsamen PROPFIND starten
-  const quickPromise = getSummary().catch(() => []);
-  const fullPromise  = getAllCheckins();
-
-  // Sofort anzeigen, was summary.json hat – nur wenn Dashboard noch nie geladen
+  // Schnell-Render: summary.json fire-and-forget (blockiert loadDashboard NICHT)
   if (!lastCheckins.length) {
-    const quick = await quickPromise;
-    if (quick.length) {
+    getSummary().then(quick => {
+      if (!quick || !quick.length) return;
+      if (!$('t-dashboard').querySelector('.spinner')) return; // Vollständige Daten schon da
       const ts = today();
       const qa = quick.filter(c => c.date === ts && c.raum_id);
       renderDashboard(qa.filter(c => c.type === 'lehrer'), qa.filter(c => c.type !== 'lehrer'), searchQuery);
       $('t-last-update').textContent = '⏳ Wird aktualisiert …';
-    }
+    }).catch(() => {});
   }
 
-  // Vollständige Daten via PROPFIND + Delta-Cache
+  // Vollständige Daten via PROPFIND + Delta-Cache (mit 20s Timeout)
   try {
-    const all = await fullPromise;
+    const all = await getAllCheckins();
     lastCheckins = all;
     writeSummary(all); // Frische summary.json für Schüleransicht schreiben
     dashboardErrorCount = 0;
