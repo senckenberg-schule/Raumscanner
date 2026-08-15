@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.9.1</title>
+  <title>RaumScanner V1.9.2</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -248,7 +248,7 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9.1</div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9.2</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -454,7 +454,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260812b';
+const APP_VERSION = '20260815';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -495,19 +495,29 @@ CFG.apiKey = '2d6e903a2e2cde5533a9dbc79fd249489d6c018964f21b5a';
 })()
 
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
+// "nr" = Raumnummer im Gebäude, wird in der Übersicht in Klammern angezeigt.
+// Die QR-Codes enthalten nur die "id" – sie bleiben davon unberührt.
 const ROOMS = [
-  { id: 'LERNBUERO1',     name: 'Lernbüro 1',            capacity: null, emoji: '📚' },
-  { id: 'LERNBUERO2',     name: 'Lernbüro 2',            capacity: null, emoji: '📚' },
-  { id: 'LERNBUERO3',     name: 'Lernbüro 3',            capacity: null, emoji: '📚' },
-  { id: 'LERNBUERO4',     name: 'Lernbüro 4',            capacity: null, emoji: '📚' },
-  { id: 'LERNBUERO5',     name: 'Lernbüro 5',            capacity: null, emoji: '📚' },
-  { id: 'GRUPPENARBEIT',  name: 'Gruppenarbeitsraum',    capacity: 20,   emoji: '👥' },
-  { id: 'GRUPPENARBEIT2', name: 'Gruppenarbeitsraum 2',  capacity: 20,   emoji: '👥' },
-  { id: 'AQUARIUM',       name: 'Aquarium',               capacity: 20,   emoji: '🐟' },
-  { id: 'MEDIENRAUM',     name: 'Medienraum',             capacity: 20,   emoji: '🖥️' },
-  { id: 'CAFETERIA',      name: 'Cafeteria',              capacity: 20,   emoji: '☕' },
-  { id: 'LOUNGE',         name: 'Schülerlounge',          capacity: 10,   emoji: '🛋️' },
+  { id: 'LERNBUERO1',     name: 'Lernbüro 1',            nr: '0.02', capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO2',     name: 'Lernbüro 2',            nr: '0.03', capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO3',     name: 'Lernbüro 3',            nr: '0.04', capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO4',     name: 'Lernbüro 4',            nr: '0.07', capacity: null, emoji: '📚' },
+  { id: 'LERNBUERO5',     name: 'Lernbüro 5',            nr: '0.06', capacity: null, emoji: '📚' },
+  { id: 'GRUPPENARBEIT',  name: 'Gruppenarbeitsraum',    nr: '0.01', capacity: 20,   emoji: '👥' },
+  { id: 'GRUPPENARBEIT2', name: 'Gruppenarbeitsraum 2',  nr: '0.05', capacity: 20,   emoji: '👥' },
+  { id: 'AQUARIUM',       name: 'Aquarium',              nr: null,   capacity: 20,   emoji: '🐟' },
+  { id: 'MEDIENRAUM',     name: 'Medienraum',            nr: '0.74', capacity: 20,   emoji: '🖥️' },
+  { id: 'CAFETERIA',      name: 'Cafeteria',             nr: null,   capacity: 20,   emoji: '☕' },
+  { id: 'LOUNGE',         name: 'Schülerlounge',         nr: null,   capacity: 10,   emoji: '🛋️' },
 ];
+
+// Raumname + Nummer in Klammern, z.B. "Lernbüro 1 (0.02)".
+// Räume ohne hinterlegte Nummer bleiben unverändert.
+function roomLabel(raumId, fallbackName) {
+  const name = fallbackName || raumId || '?';
+  const room = ROOMS.find(r => r.id === raumId);
+  return (room && room.nr) ? name + ' (' + room.nr + ')' : name;
+}
 
 // ── STATE ────────────────────────────────────────────────────────
 let currentRole = null, studentSubTab = 'checkin', teacherSubTab = 'overview';
@@ -883,6 +893,35 @@ function afterSuccess() {
 }
 
 // ── LOGOUT ───────────────────────────────────────────────────────
+// Schreibt eine Datei mit Retry bei 423 (Locked) und prüft das Ergebnis.
+// Wirft bei Misserfolg – der Aufrufer darf NUR bei Erfolg "Ausgeloggt" melden.
+// Delta-Cache-Eintrag für eine Datei verwerfen, damit das Dashboard sie neu lädt.
+// Schlüssel ist der volle DAV-Pfad aus dem PROPFIND – daher über Endung suchen.
+function invalidateCache(filename) {
+  for (const href of fileCache.keys()) {
+    if (href.endsWith('/' + filename)) fileCache.delete(href);
+  }
+}
+
+async function putCheckinFile(url, obj) {
+  let resp;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+    resp = await fetch(url, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(obj, null, 2)
+    });
+    if (resp.status !== 423) break;
+  }
+  if (!resp.ok) {
+    throw new Error(resp.status === 423
+      ? 'Server kurz ausgelastet – bitte in 5 Sekunden nochmal versuchen'
+      : 'HTTP ' + resp.status);
+  }
+  return resp;
+}
+
 async function doLogout(ctx) {
   const isTeacher = ctx === 'teacher';
   const name = isTeacher ? ls('t_name') : ls('s_name');
@@ -892,16 +931,39 @@ async function doLogout(ctx) {
   try {
     const filename = sanitize(name + '_' + kl) + '.json';
     const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
+
+    // Frisch lesen (kein Cache) – falls das scheitert, trotzdem ausloggen
     let existing = null;
-    try { const r = await fetch(url); if(r.ok) existing = await r.json(); } catch(e){}
-    if (existing) {
-      existing.raum_id = null; existing.raum_name = 'Ausgeloggt'; existing.timestamp = new Date().toISOString();
-      await fetch(url, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(existing,null,2)});
-      await updateSummary(existing).catch(()=>{});
+    try {
+      const r = await fetch(url, {cache: 'no-store'});
+      if (r.ok) existing = await r.json();
+    } catch(e) {}
+
+    // Fällt der GET aus, aus lokalem Stand rekonstruieren statt gar nichts zu schreiben
+    if (!existing || typeof existing !== 'object') {
+      const local = lsJson(isTeacher ? 't_current' : 's_current') || {};
+      existing = {
+        type: isTeacher ? 'lehrer' : 'schueler',
+        name, klasse: kl, date: today(),
+        history: local.history || []
+      };
+      if (isTeacher) { const fach = ls('t_subject'); if (fach) existing.fach = fach; }
     }
+
+    existing.raum_id = null;
+    existing.raum_name = 'Ausgeloggt';
+    existing.timestamp = new Date().toISOString();
+
+    await putCheckinFile(url, existing);      // wirft bei Misserfolg
+    await updateSummary(existing).catch(()=>{});
+    invalidateCache(filename); // Delta-Cache invalidieren
+
     if (isTeacher) { ls('t_current', null); refreshTeacherCard(); toast('Ausgeloggt'); }
     else { ls('s_current', null); refreshCurrentCard(); toast('Ausgeloggt'); loadRoomOverview(); }
-  } catch(e) { toast('Fehler beim Ausloggen'); }
+  } catch(e) {
+    console.error('Logout fehlgeschlagen:', e);
+    toast('Ausloggen fehlgeschlagen: ' + e.message);  // lokaler Stand bleibt erhalten
+  }
 }
 
 async function manualLogout() {
@@ -909,14 +971,23 @@ async function manualLogout() {
   const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(currentModalFile);
   try {
     let data = null;
-    const r = await fetch(url); if(r.ok) data = await r.json();
-    if (data) {
-      data.raum_id = null; data.raum_name = 'Ausgeloggt'; data.timestamp = new Date().toISOString();
-      await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data,null,2)});
-      await updateSummary(data).catch(()=>{});
-    }
+    const r = await fetch(url, {cache: 'no-store'});
+    if (r.ok) data = await r.json();
+    if (!data || typeof data !== 'object') throw new Error('Datei nicht lesbar');
+
+    data.raum_id = null;
+    data.raum_name = 'Ausgeloggt';
+    data.timestamp = new Date().toISOString();
+
+    await putCheckinFile(url, data);          // wirft bei Misserfolg
+    await updateSummary(data).catch(()=>{});
+    invalidateCache(currentModalFile);
+
     toast('Lernende ausgeloggt'); closeModal(); loadDashboard();
-  } catch(e) { toast('Fehler'); }
+  } catch(e) {
+    console.error('Manuelles Ausloggen fehlgeschlagen:', e);
+    toast('Fehler: ' + e.message);
+  }
 }
 
 // ── WEBDAV ───────────────────────────────────────────────────────
@@ -1095,7 +1166,7 @@ function renderRoomOverview(all) {
         <div class="ro-inner">
           <div class="ro-icon">${locked ? '🔒' : room.emoji}</div>
           <div class="ro-info">
-            <div class="ro-name${locked ? ' locked' : ''}">${esc(room.name)}</div>`;
+            <div class="ro-name${locked ? ' locked' : ''}">${esc(roomLabel(room.id, room.name))}</div>`;
       if (!locked) {
         html += `<div class="ro-sub">${occupied} von ${room.capacity} Plätzen belegt</div>
             <div class="cap-bar"><div class="cap-fill ${colorClass}" style="width:${Math.min(pct,100)}%"></div></div>
@@ -1113,7 +1184,7 @@ function renderRoomOverview(all) {
         <div class="ro-inner">
           <div class="ro-icon">${room.emoji}</div>
           <div class="ro-info">
-            <div class="ro-name">${esc(room.name)}</div>
+            <div class="ro-name">${esc(roomLabel(room.id, room.name))}</div>
             <div class="ro-sub">${hasTeacher
               ? `<span class="ro-teacher" style="font-size:13px">👨‍🏫 ${teacherLine}</span>`
               : 'Kein Lernbegleiter vor Ort'}</div>
@@ -1255,7 +1326,7 @@ function renderDashboard(teachers, students, query) {
         <div class="avatar avatar-t">${esc(initials(t.name))}</div>
         <div class="card-content">
           <div class="person-name">${teacherBadgeHtml(t)}</div>
-          <div class="person-meta">📍 ${esc(t.raum_name)} · ${fmtTime(t.timestamp)}</div>
+          <div class="person-meta">📍 ${esc(roomLabel(t.raum_id, t.raum_name))} · ${fmtTime(t.timestamp)}</div>
         </div>
         <div style="color:var(--text3);font-size:18px">›</div></div>`;
     });
@@ -1270,7 +1341,7 @@ function renderDashboard(teachers, students, query) {
         <div class="avatar avatar-s">${esc(initials(s.name))}</div>
         <div class="card-content">
           <div class="person-name">${esc(s.name)}</div>
-          <div class="person-meta">📍 ${esc(s.raum_name)} · Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div>
+          <div class="person-meta">📍 ${esc(roomLabel(s.raum_id, s.raum_name))} · Klasse ${esc(s.klasse)} · ${fmtTime(s.timestamp)}</div>
         </div>
         <div style="color:var(--text3);font-size:18px">›</div></div></div>`;
     });
@@ -1320,7 +1391,7 @@ function renderDashboard(teachers, students, query) {
     const bodyDisplay = isCollapsed ? 'none' : 'block';
     let h = `<div class="room-card">
       <div class="room-header" style="background:${color}" onclick="toggleRoom('${esc(cKey)}')">
-        ${icon} <span class="room-title">${esc(roomName)}</span>
+        ${icon} <span class="room-title">${esc(roomLabel(key, roomName))}</span>
         <span class="room-count">${count}</span>
         <span class="collapse-arrow ${arrow}">▼</span>
       </div>
