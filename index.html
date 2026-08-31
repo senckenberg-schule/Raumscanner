@@ -454,7 +454,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260827';
+const APP_VERSION = '20260831';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -1055,7 +1055,7 @@ async function getAllCheckins() {
 
   // AbortController deckt PROPFIND + alle Einzel-Fetches ab (20s Gesamtlimit)
   const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), 20000);
+  const tid  = setTimeout(() => ctrl.abort(), 45000);
 
   try {
     const r = await fetch(url, {
@@ -1074,8 +1074,8 @@ async function getAllCheckins() {
     }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
 
     const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
-    for (let i = 0; i < toFetch.length; i += 6) {
-      const chunk = toFetch.slice(i, i + 6);
+    for (let i = 0; i < toFetch.length; i += 15) {
+      const chunk = toFetch.slice(i, i + 15);
       await Promise.all(chunk.map(async f => {
         try {
           const fr = await fetch(WORKER + f.href, { signal: ctrl.signal });
@@ -1284,9 +1284,12 @@ async function loadDashboard() {
       if (safeRender(active.filter(c => c.type === 'lehrer'), active.filter(c => c.type !== 'lehrer'), searchQuery)) {
         $('t-last-update').textContent = '⚠️ Verbindung verloren – zeige letzte Daten';
       }
+    } else if (!$('t-dashboard').querySelector('.spinner')) {
+      // Quick-Render hat bereits Daten gezeigt – nicht überschreiben
+      $('t-last-update').textContent = '⚠️ Verbindung instabil';
     } else {
       // Noch keine Daten: Fehlermeldung anzeigen (ersetzt immer den Spinner)
-      const msg = (e && e.name === 'AbortError') ? 'Zeitüberschreitung (20 Sek.)' : esc(e && e.message || 'Unbekannter Fehler');
+      const msg = (e && e.name === 'AbortError') ? 'Zeitüberschreitung (45 Sek.)' : esc(e && e.message || 'Unbekannter Fehler');
       $('t-dashboard').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Verbindungsfehler</div><div style="font-size:13px;color:var(--text3)">${msg}<br>Wird erneut versucht …</div></div>`;
       $('t-last-update').textContent = '⚠️ Fehler';
     }
