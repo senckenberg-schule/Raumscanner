@@ -999,9 +999,13 @@ async function manualLogout() {
 }
 
 // ── ALLE AUSLOGGEN ───────────────────────────────────────────────
-function confirmLogoutAll() {
+async function confirmLogoutAll() {
   const todayStr = today();
-  const active = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+  let active = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+  if (!active.length) {
+    // lastCheckins noch nicht geladen – summary.json als Fallback lesen
+    try { active = (await getSummary()).filter(c => c.raum_id); } catch(e) {}
+  }
   if (!active.length) { toast('Niemand ist gerade eingecheckt'); return; }
   if (!confirm(`Alle ${active.length} Personen ausloggen?`)) return;
   logoutAll(active);
