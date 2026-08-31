@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.9.2</title>
+  <title>RaumScanner V1.9.3</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -248,7 +248,7 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9.2</div>
+      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9.3</div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -454,7 +454,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260815';
+const APP_VERSION = '20260827';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -724,6 +724,8 @@ function switchTeacherTab(tab) {
     searchQuery = ''; $('t-search').value = ''; $('t-search-clear').classList.remove('visible');
     loadDashboard(); startPoll();
   } else {
+    // Bevor Poll stoppt: einmal authoritative summary.json schreiben, damit Schüler-Ansicht aktuell bleibt
+    getAllCheckins().then(all => writeSummary(all)).catch(()=>{});
     stopPoll();
     showScreen('screen-t-checkin'); $('nav-title').textContent = 'Einloggen';
     const tname = ls('t_name');
@@ -871,6 +873,9 @@ async function doCheckin(raumId, raumName, ctx) {
     if (isTeacher) ls('t_current', checkin);
     else           ls('s_current', checkin);
     await updateSummary(checkin).catch(()=>{});
+    // Nach Lernbegleiter-Einchecken: sofort authoritative summary.json schreiben
+    // (updateSummary allein kann durch gleichzeitige Schüler-Schreibvorgänge überschrieben werden)
+    if (isTeacher) getAllCheckins().then(all => writeSummary(all)).catch(()=>{});
 
     $('suc-title').textContent = isTeacher ? 'Eingeloggt!' : 'Eingecheckt!';
     $('suc-room').textContent = '📍 ' + raumName;
@@ -957,6 +962,8 @@ async function doLogout(ctx) {
     await putCheckinFile(url, existing);      // wirft bei Misserfolg
     await updateSummary(existing).catch(()=>{});
     invalidateCache(filename); // Delta-Cache invalidieren
+    // Nach Lernbegleiter-Ausloggen: sofort authoritative summary.json schreiben
+    if (isTeacher) getAllCheckins().then(all => writeSummary(all)).catch(()=>{});
 
     if (isTeacher) { ls('t_current', null); refreshTeacherCard(); toast('Ausgeloggt'); }
     else { ls('s_current', null); refreshCurrentCard(); toast('Ausgeloggt'); loadRoomOverview(); }
