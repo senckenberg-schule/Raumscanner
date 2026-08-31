@@ -397,7 +397,8 @@
       <div id="t-dashboard">
         <div class="empty"><div class="spinner" style="width:28px;height:28px;margin:0 auto"></div></div>
       </div>
-      <div style="margin-top:8px">
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-outline-red" id="logout-all-btn" onclick="confirmLogoutAll()">🚪 Alle ausloggen</button>
         <button class="btn btn-outline-red" onclick="teacherLogout()">Abmelden &amp; zurück zum Start</button>
       </div>
     </div>
@@ -995,6 +996,45 @@ async function manualLogout() {
     console.error('Manuelles Ausloggen fehlgeschlagen:', e);
     toast('Fehler: ' + e.message);
   }
+}
+
+// ── ALLE AUSLOGGEN ───────────────────────────────────────────────
+function confirmLogoutAll() {
+  const todayStr = today();
+  const active = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+  if (!active.length) { toast('Niemand ist gerade eingecheckt'); return; }
+  if (!confirm(`Alle ${active.length} Personen ausloggen?`)) return;
+  logoutAll(active);
+}
+
+async function logoutAll(active) {
+  const btn = $('logout-all-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Wird ausgeloggt …'; }
+
+  const ts = new Date().toISOString();
+  let errors = 0;
+
+  await Promise.all(active.map(async c => {
+    try {
+      const filename = sanitize(c.name + '_' + (c.klasse || '')) + '.json';
+      const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
+      let data = null;
+      const r = await fetch(url, {cache: 'no-store'});
+      if (r.ok) data = await r.json();
+      if (!data || typeof data !== 'object') data = {...c};
+      data.raum_id = null;
+      data.raum_name = 'Ausgeloggt';
+      data.timestamp = ts;
+      await putCheckinFile(url, data);
+      invalidateCache(filename);
+    } catch(e) { errors++; }
+  }));
+
+  getAllCheckins().then(all => writeSummary(all)).catch(() => {});
+
+  if (btn) { btn.disabled = false; btn.textContent = '🚪 Alle ausloggen'; }
+  toast(errors ? `${active.length - errors} ausgeloggt, ${errors} Fehler` : `Alle ${active.length} Personen ausgeloggt`);
+  loadDashboard();
 }
 
 // ── WEBDAV ───────────────────────────────────────────────────────
