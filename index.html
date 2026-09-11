@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RaumScanner">
   <meta name="theme-color" content="#007AFF">
-  <title>RaumScanner V1.9.3</title>
+  <title>RaumScanner</title>
   <style>
     :root {
       --blue:#007AFF; --green:#34C759; --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE;
@@ -248,7 +248,11 @@
           <div class="role-arrow purple">›</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text3)">V1.9.3</div>
+      <div style="text-align:center;margin-top:28px">
+        <button onclick="openChangelog()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:6px 10px">
+          <span id="start-version">V—</span> · Was ist neu?
+        </button>
+      </div>
     </div>
 
     <!-- ── LERNENDE SETUP ── -->
@@ -260,11 +264,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">Dein Name</label>
-        <input type="text" class="form-input" id="s-name" placeholder="z.B. Max Mustermann" autocomplete="name">
+        <input type="text" class="form-input" id="s-name" placeholder="z.B. Max Mustermann" autocomplete="name" maxlength="40">
       </div>
       <div class="form-group">
         <label class="form-label">Deine Klasse</label>
-        <input type="text" class="form-input" id="s-class" placeholder="z.B. 7a">
+        <input type="text" class="form-input" id="s-class" placeholder="z.B. 7a" maxlength="10">
       </div>
       <button class="btn btn-blue" onclick="saveStudentSetup()">Weiter →</button>
     </div>
@@ -367,7 +371,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Name (z.B. Fr. Bauer)</label>
-        <input type="text" class="form-input" id="t-name" placeholder="z.B. Fr. Bauer">
+        <input type="text" class="form-input" id="t-name" placeholder="z.B. Fr. Bauer" maxlength="40">
       </div>
       <div class="form-group">
         <label class="form-label">Begleitetes Fach</label>
@@ -415,6 +419,10 @@
           <div class="current-label">Aktuell eingecheckt</div>
           <div class="current-room" id="t-current-room">—</div>
           <div class="current-since" id="t-current-since">—</div>
+          <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:10px">
+            <span style="font-size:14px;font-weight:600" id="t-current-until">—</span>
+            <button onclick="changeDuration()" style="background:rgba(255,255,255,.25);border:none;color:#fff;font-size:13px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer">ändern</button>
+          </div>
         </div>
       </div>
       <div style="margin-top:12px">
@@ -439,6 +447,27 @@
   <button class="scanner-cancel" onclick="closeScanner()">Abbrechen</button>
 </div>
 
+<!-- Changelog Modal -->
+<div class="modal-overlay" id="changelog-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Was ist neu?</div>
+    <div id="changelog-content"></div>
+    <button class="btn btn-outline" onclick="$('changelog-modal').classList.remove('active')" style="margin-top:8px">Schließen</button>
+  </div>
+</div>
+
+<!-- Einsatzdauer Modal -->
+<div class="modal-overlay" id="duration-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="duration-title">Wie lange bist du im Einsatz?</div>
+    <div style="font-size:13px;color:var(--text3);text-align:center;margin:-10px 0 16px" id="duration-sub">—</div>
+    <div id="duration-options"></div>
+    <button class="btn btn-outline" id="duration-cancel" style="margin-top:8px">Abbrechen</button>
+  </div>
+</div>
+
 <!-- History Modal -->
 <div class="modal-overlay" id="history-modal">
   <div class="modal-sheet">
@@ -455,7 +484,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260831';
+const APP_VERSION = '20260910';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -467,6 +496,36 @@ const APP_VERSION = '20260831';
   }
 })();
 
+// ── CHANGELOG ────────────────────────────────────────────────────
+// ▼▼▼ HIER neue Änderungen eintragen – neueste Version ganz oben ▼▼▼
+// Die oberste Versionsnummer erscheint automatisch im Browser-Titel und
+// auf dem Startbildschirm. Sie muss also nur an dieser einen Stelle stehen.
+const CHANGELOG = [
+  {
+    version: '1.9.4',
+    datum: '10.09.2026',
+    punkte: [
+      'Lernbegleiter geben beim Einloggen an, wie lange sie im Einsatz sind. Der Eintrag endet danach von selbst – vergessenes Abmelden führt nicht mehr zu scheinbar besetzten Räumen.',
+      'Beim Raumwechsel wird nicht erneut gefragt; die Endzeit lässt sich über "ändern" anpassen.',
+      'Auch Einträge von Lernenden enden automatisch zur großen Pause. Die Belegungszahlen stimmen dadurch wieder.',
+      'Nach der 6. Stunde ist kein Einchecken mehr möglich.',
+      'Diese Übersicht "Was ist neu?" wurde ergänzt.',
+    ],
+  },
+  {
+    version: '1.9.3',
+    datum: '09.09.2026',
+    punkte: [
+      'Namen werden geprüft: Emoji und übermäßig lange Eingaben sind nicht mehr möglich.',
+      'Ladezeiten deutlich verkürzt – die Übersichtsdatei enthält nur noch den aktuellen Tag statt aller Einträge seit Monaten.',
+      'Einträge von Personen, die seit über vier Wochen nicht mehr gescannt haben, werden automatisch gelöscht (Datenschutz).',
+      'Neuer Knopf "Alle ausloggen" im Lernbegleiter-Dashboard.',
+      'Weniger Verbindungsabbrüche und "Datei gesperrt"-Fehler.',
+    ],
+  },
+];
+// ▲▲▲ ENDE Changelog ▲▲▲
+
 // ── CONFIG ──────────────────────────────────────────────────────
 const CFG = {
   base: 'https://nextcloud-proxy.stbauer81.workers.dev/remote.php/dav/files/da65e470-cdc4-45fb-81f6-7438e75284ce',
@@ -474,6 +533,10 @@ const CFG = {
   summaryFile: 'RaumScanner/checkins/summary.json',
   poll:   30000, // Lehrer-Dashboard: alle 30 Sek.
   roPoll: 30000, // Raumübersicht Schüler: alle 30 Sek. (war 10 Sek.)
+  // Wer so viele Wochen nicht mehr gescannt hat, wird nicht mehr geladen
+  // und beim täglichen Aufräumen gelöscht. Maßstab ist die letzte Aktivität:
+  // Jede Person hat eine Datei, die bei jedem Scan überschrieben wird.
+  maxAgeWeeks: 4,
 };
 const WORKER = 'https://nextcloud-proxy.stbauer81.workers.dev';
 // Zugangsdaten und PIN liegen jetzt nur im Cloudflare Worker (nicht mehr im Client)
@@ -494,6 +557,28 @@ CFG.apiKey = '2d6e903a2e2cde5533a9dbc79fd249489d6c018964f21b5a';
     return _fetch(url, opts);
   };
 })()
+
+// ── STUNDENRASTER ────────────────────────────────────────────────
+// ▼▼▼ HIER ÄNDERN, wenn sich eure Unterrichtszeiten ändern ▼▼▼
+// Gilt an allen Wochentagen. Alles Weitere rechnet die App daraus aus.
+//
+// "block": Einheiten mit derselben Nummer gehören zusammen. Zwischen zwei
+// Blöcken liegt eine große Pause – dort endet jeder Eintrag automatisch und
+// alle müssen sich neu einloggen.
+// "lz": true kennzeichnet die Lernzeit (30 Min. statt 40 Min.).
+const SLOTS = [
+  { label: '1. Stunde', start: '08:00', end: '08:40', block: 1, lz: false },
+  { label: '2. Stunde', start: '08:40', end: '09:20', block: 1, lz: false },
+  { label: 'Lernzeit',  start: '09:25', end: '09:55', block: 1, lz: true  },
+  // ── große Pause ──
+  { label: '3. Stunde', start: '10:15', end: '10:55', block: 2, lz: false },
+  { label: '4. Stunde', start: '11:00', end: '11:40', block: 2, lz: false },
+  // ── große Pause ──
+  { label: '5. Stunde', start: '11:55', end: '12:35', block: 3, lz: false },
+  { label: '6. Stunde', start: '12:40', end: '13:20', block: 3, lz: false },
+];
+const GRACE_MIN = 5; // Karenzzeit: so viele Minuten gilt ein Eintrag nach Ablauf noch
+// ▲▲▲ ENDE Stundenraster ▲▲▲
 
 // ── RÄUME CONFIG ─────────────────────────────────────────────────
 // "nr" = Raumnummer im Gebäude, wird in der Übersicht in Klammern angezeigt.
@@ -546,6 +631,60 @@ function sanitize(s) {
     .replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
 }
 function today() { return new Date().toISOString().slice(0,10); }
+
+// ── ZEITRASTER-LOGIK ─────────────────────────────────────────────
+// Alle Rechnungen in Minuten seit Mitternacht, in LOKALER Zeit –
+// nicht UTC, sonst stimmen die Stundenzeiten nicht.
+function nowMin(d) { d = d || new Date(); return d.getHours()*60 + d.getMinutes(); }
+function hmToMin(hm) { const p = String(hm||'').split(':'); return (+p[0]||0)*60 + (+p[1]||0); }
+function minToHm(m) { return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0'); }
+
+// Index der laufenden Einheit. Während einer Pause die nächste kommende.
+// null = kein Lernband mehr (nach der letzten Stunde).
+function currentSlotIndex(min) {
+  if (min === undefined) min = nowMin();
+  for (let i = 0; i < SLOTS.length; i++) if (min < hmToMin(SLOTS[i].end)) return i;
+  return null;
+}
+
+// Ende des Blocks, zu dem diese Einheit gehört (= Beginn der großen Pause).
+function blockEndMin(idx) {
+  if (idx === null) return null;
+  const b = SLOTS[idx].block;
+  let end = hmToMin(SLOTS[idx].end);
+  for (let j = idx; j < SLOTS.length && SLOTS[j].block === b; j++) end = hmToMin(SLOTS[j].end);
+  return end;
+}
+
+// Welche Einsatzdauern sind ab dieser Einheit möglich? Nie über den Block hinaus.
+function durationOptions(idx) {
+  if (idx === null) return [];
+  const s = SLOTS, cur = s[idx], out = [];
+  const sameBlock = j => s[j] && s[j].block === cur.block;
+
+  if (cur.lz) return [{ label: 'Lernzeit', endMin: hmToMin(cur.end) }];
+
+  out.push({ label: '1 Stunde', endMin: hmToMin(cur.end) });
+  if (sameBlock(idx+1) && s[idx+1].lz) {
+    out.push({ label: '1 Stunde + LZ', endMin: hmToMin(s[idx+1].end) });
+  } else if (sameBlock(idx+1)) {
+    out.push({ label: '2 Stunden', endMin: hmToMin(s[idx+1].end) });
+    if (sameBlock(idx+2) && s[idx+2].lz) {
+      out.push({ label: '2 Stunden + LZ', endMin: hmToMin(s[idx+2].end) });
+    }
+  }
+  return out;
+}
+
+// Gilt dieser Eintrag jetzt noch? Wird nur beim Anzeigen berechnet, nie
+// zurückgeschrieben – sonst würden zum Blockende alle Geräte gleichzeitig schreiben.
+// Altdaten ohne gueltig_bis verhalten sich wie bisher (laufen den Tag über).
+function isActive(c, min) {
+  if (!c || !c.raum_id || c.date !== today()) return false;
+  if (!c.gueltig_bis) return true;
+  if (min === undefined) min = nowMin();
+  return min <= hmToMin(c.gueltig_bis) + GRACE_MIN;
+}
 function fmtTime(iso) {
   if (!iso) return '—';
   const d = new Date(iso), now = new Date(), diff = now - d;
@@ -557,7 +696,30 @@ function fmtClock(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr';
 }
-function initials(name) { return String(name||'?').split(' ').map(n=>n[0]||'').join('').substring(0,2).toUpperCase(); }
+function initials(name) {
+  const words = String(name||'?').trim().split(/\s+/).filter(Boolean);
+  // Array.from ist zeichen-sicher (zerschneidet keine Emoji/Sonderzeichen)
+  const chars = words.map(w => Array.from(w)[0] || '').join('');
+  return Array.from(chars).slice(0,2).join('').toUpperCase() || '?';
+}
+
+// Namen bereinigen: Emoji und Sonderzeichen entfernen, Länge begrenzen.
+// Ohne das kann ein manipulierter Name (z.B. 60.000 Flaggen-Emoji) die
+// gesamte Anzeige und die summary.json sprengen.
+function cleanName(s) {
+  return String(s || '')
+    .replace(/[^\p{L}\p{N} .'\-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 40);
+}
+
+// Auf geladene Datensätze anwenden – wirkt auch rückwirkend auf Altdaten.
+function normalizeCheckin(c) {
+  if (!c || typeof c !== 'object') return c;
+  const n = cleanName(c.name);
+  return n === c.name ? c : {...c, name: n};
+}
 function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
@@ -575,8 +737,28 @@ function hideBackBtn() {
   $('nav-version').style.display = '';
 }
 
+// ── CHANGELOG ANZEIGEN ───────────────────────────────────────────
+function openChangelog() {
+  $('changelog-content').innerHTML = CHANGELOG.map(e => `
+    <div style="margin-bottom:18px">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+        <span style="font-size:16px;font-weight:700">V${esc(e.version)}</span>
+        <span style="font-size:12px;color:var(--text3)">${esc(e.datum)}</span>
+      </div>
+      <ul style="margin:0;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.5">
+        ${e.punkte.map(p => `<li style="margin-bottom:6px">${esc(p)}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+  $('changelog-modal').classList.add('active');
+}
+
 // ── BOOT ────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
+  // Versionsnummer überall aus dem Changelog übernehmen – eine Quelle für alles
+  const v = 'V' + (CHANGELOG[0] ? CHANGELOG[0].version : '?');
+  document.title = 'RaumScanner ' + v;
+  if ($('start-version')) $('start-version').textContent = v;
+  if ($('nav-version'))   $('nav-version').textContent   = v;
   $('today-date').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const savedName = ls('s_name');
   if (savedName) $('start-subtitle').textContent = 'Willkommen zurück, ' + savedName + '!';
@@ -656,9 +838,10 @@ function switchStudentTab(tab) {
 
 // ── STUDENT SETUP ────────────────────────────────────────────────
 function saveStudentSetup() {
-  const name = $('s-name').value.trim(), kl = $('s-class').value.trim();
-  if (!name) { toast('Bitte Namen eingeben'); return; }
-  if (!kl)   { toast('Bitte Klasse eingeben'); return; }
+  const name = cleanName($('s-name').value), kl = cleanName($('s-class').value);
+  if (!name) { toast('Bitte einen gültigen Namen eingeben'); return; }
+  if (!kl)   { toast('Bitte eine gültige Klasse eingeben'); return; }
+  $('s-name').value = name; $('s-class').value = kl;
   ls('s_name', name); ls('s_class', kl);
   setStudentGreeting(name, kl);
   refreshCurrentCard();
@@ -678,13 +861,15 @@ function setStudentGreeting(name, kl) {
 function refreshCurrentCard() {
   const data = lsJson('s_current');
   const card = $('s-current-card');
-  if (data && data.date === today()) {
+  if (isActive(data)) {
     card.style.display = 'block';
     $('s-current-room').textContent = '📍 ' + (data.raum_name || data.raum_id);
-    $('s-current-since').textContent = 'Seit ' + fmtClock(data.timestamp);
+    $('s-current-since').textContent = data.gueltig_bis
+      ? 'Seit ' + fmtClock(data.timestamp) + ' · bis ' + data.gueltig_bis + ' Uhr'
+      : 'Seit ' + fmtClock(data.timestamp);
   } else {
     card.style.display = 'none';
-    ls('s_current', null);
+    if (data) ls('s_current', null);
   }
 }
 
@@ -696,8 +881,9 @@ function selectSubject(btn) {
   if (anyActive === 0) btn.classList.add('active');
 }
 function saveTeacherSetup() {
-  const name = $('t-name').value.trim();
-  if (!name) { toast('Bitte Namen eingeben'); return; }
+  const name = cleanName($('t-name').value);
+  if (!name) { toast('Bitte einen gültigen Namen eingeben'); return; }
+  $('t-name').value = name;
   const activeBtns = [...document.querySelectorAll('#t-subject-seg .seg-btn.active')];
   const subject = activeBtns.length ? activeBtns.map(b => b.dataset.val).join(',') : 'M';
   ls('t_name', name);
@@ -738,15 +924,44 @@ function refreshTeacherCard() {
   const data = lsJson('t_current');
   const card = $('t-current-card');
   const logBtn = $('t-logout-btn');
-  if (data && data.date === today()) {
+  if (isActive(data)) {
     card.style.display = 'block';
     logBtn.style.display = 'flex';
     $('t-current-room').textContent = '📍 ' + (data.raum_name || data.raum_id);
     $('t-current-since').textContent = 'Seit ' + fmtClock(data.timestamp);
+    $('t-current-until').textContent = data.gueltig_bis ? 'bis ' + data.gueltig_bis + ' Uhr' : 'ohne Endzeit';
   } else {
     card.style.display = 'none';
     logBtn.style.display = 'none';
-    ls('t_current', null);
+    // Abgelaufene Einträge lokal verwerfen – der nächste Scan fragt neu.
+    if (data) ls('t_current', null);
+  }
+}
+
+// Endzeit nachträglich ändern (länger bleiben oder früher gehen).
+async function changeDuration() {
+  const cur = lsJson('t_current');
+  if (!isActive(cur)) { toast('Kein aktiver Eintrag'); return; }
+  const idx = currentSlotIndex();
+  if (idx === null) { toast('Heute ist kein Lernband mehr'); return; }
+  const opts = durationOptions(idx);
+  if (!opts.length) { toast('Keine Auswahl möglich'); return; }
+
+  const choice = await askDuration(opts, cur.raum_name);
+  if (!choice) return;
+
+  try {
+    const filename = sanitize(cleanName(cur.name) + '_lehrer') + '.json';
+    const url = CFG.base + '/' + CFG.folder + '/' + encodeURIComponent(filename);
+    const updated = {...cur, gueltig_bis: minToHm(choice.endMin)};
+    await putCheckinFile(url, updated);
+    await updateSummary(updated).catch(()=>{});
+    invalidateCache(filename);
+    ls('t_current', updated);
+    refreshTeacherCard();
+    toast('Geändert – eingecheckt bis ' + updated.gueltig_bis + ' Uhr');
+  } catch(e) {
+    toast('Fehler: ' + e.message);
   }
 }
 function teacherLogout() {
@@ -780,6 +995,46 @@ async function checkPin() {
       else { $('subtabs-teacher').classList.remove('visible'); showScreen('screen-t-setup'); $('nav-title').textContent='Einrichten'; }
     } else { toast('Falscher PIN'); pinVal=''; updatePinDots(); }
   } catch(e) { toast('Verbindungsfehler'); pinVal=''; updatePinDots(); }
+}
+
+// ── EINSATZDAUER ABFRAGEN ────────────────────────────────────────
+// Liefert die gewählte Option oder null bei Abbruch.
+function askDuration(options, raumName) {
+  return new Promise(resolve => {
+    const el = $('duration-modal');
+    $('duration-sub').textContent = raumName || '';
+    $('duration-options').innerHTML = options.map((o, i) =>
+      `<button class="btn btn-outline" data-i="${i}" style="margin-bottom:8px;justify-content:space-between">
+         <span>${esc(o.label)}</span>
+         <span style="color:var(--text3);font-weight:500">bis ${minToHm(o.endMin)} Uhr</span>
+       </button>`).join('');
+
+    const close = () => { el.classList.remove('active'); };
+    $('duration-options').querySelectorAll('button[data-i]').forEach(b => {
+      b.onclick = () => { close(); resolve(options[+b.dataset.i]); };
+    });
+    $('duration-cancel').onclick = () => { close(); resolve(null); };
+    el.classList.add('active');
+  });
+}
+
+// Endzeit für einen Check-in bestimmen.
+// Lernbegleiter: Abfrage, außer es gibt nur eine Möglichkeit oder eine
+// laufende Zeit aus diesem Block (Raumwechsel → nicht erneut fragen).
+// Lernende: immer stillschweigend bis Blockende.
+// Rückgabe: 'HH:MM', oder null wenn abgebrochen/kein Lernband.
+async function resolveGueltigBis(isTeacher, existing, raumName) {
+  const idx = currentSlotIndex();
+  if (idx === null) return null;                       // nach der 6. Stunde
+  if (!isTeacher) return minToHm(blockEndMin(idx));    // Lernende: keine Abfrage
+
+  if (isActive(existing) && existing.gueltig_bis) return existing.gueltig_bis; // Raumwechsel
+
+  const opts = durationOptions(idx);
+  if (!opts.length) return null;
+  if (opts.length === 1) return minToHm(opts[0].endMin); // nur eine Möglichkeit → nicht fragen
+  const choice = await askDuration(opts, raumName);
+  return choice ? minToHm(choice.endMin) : null;
 }
 
 // ── SCANNER ──────────────────────────────────────────────────────
@@ -827,10 +1082,11 @@ function handleQR(data) {
 // ── CHECK-IN ────────────────────────────────────────────────────
 async function doCheckin(raumId, raumName, ctx) {
   const isTeacher = ctx === 'teacher';
-  const name = isTeacher ? ls('t_name') : ls('s_name');
-  const kl   = isTeacher ? 'lehrer' : ls('s_class');
+  const name = cleanName(isTeacher ? ls('t_name') : ls('s_name'));
+  const kl   = isTeacher ? 'lehrer' : cleanName(ls('s_class'));
   const type = isTeacher ? 'lehrer' : 'schueler';
   if (!name) { toast('Bitte erst Namen eingeben'); return; }
+  if (currentSlotIndex() === null) { toast('Heute ist kein Lernband mehr – Einchecken nicht möglich'); return; }
 
   const btnId = isTeacher ? 't-scan-btn' : 's-scan-btn';
   const btn = $(btnId);
@@ -846,6 +1102,11 @@ async function doCheckin(raumId, raumName, ctx) {
       if (r.ok) existing = await r.json();
     } catch(e) {}
 
+    // Endzeit bestimmen – ggf. mit Rückfrage. Vor dem Schreiben, damit ein
+    // Abbruch keinen halben Check-in hinterlässt.
+    const gueltigBis = await resolveGueltigBis(isTeacher, existing, raumName);
+    if (!gueltigBis) { toast('Abgebrochen'); return; }
+
     const ts = new Date().toISOString();
     const todayStr = today();
     let history = [];
@@ -854,7 +1115,8 @@ async function doCheckin(raumId, raumName, ctx) {
     const entry = {raum_id:raumId, raum_name:raumName, timestamp:ts};
     history.push(entry);
 
-    const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName, timestamp:ts, date:todayStr, history};
+    const checkin = {type, name, klasse:kl, raum_id:raumId, raum_name:raumName,
+                     timestamp:ts, date:todayStr, gueltig_bis:gueltigBis, history};
     if (isTeacher) { const fach = ls('t_subject'); if (fach) checkin.fach = fach; }
 
     // Bei 423 (Ordner/Datei gesperrt): bis zu 3 Versuche mit steigenden Pausen
@@ -880,7 +1142,7 @@ async function doCheckin(raumId, raumName, ctx) {
 
     $('suc-title').textContent = isTeacher ? 'Eingeloggt!' : 'Eingecheckt!';
     $('suc-room').textContent = '📍 ' + raumName;
-    $('suc-time').textContent = fmtTime(ts);
+    $('suc-time').textContent = 'bis ' + gueltigBis + ' Uhr';
     $('suc-btn').textContent = 'Fertig ✓';
     $('suc-btn').onclick = afterSuccess;
     showScreen('screen-success'); $('nav-title').textContent = isTeacher ? 'Eingeloggt!' : 'Eingecheckt!';
@@ -930,8 +1192,8 @@ async function putCheckinFile(url, obj) {
 
 async function doLogout(ctx) {
   const isTeacher = ctx === 'teacher';
-  const name = isTeacher ? ls('t_name') : ls('s_name');
-  const kl   = isTeacher ? 'lehrer' : ls('s_class');
+  const name = cleanName(isTeacher ? ls('t_name') : ls('s_name'));
+  const kl   = isTeacher ? 'lehrer' : cleanName(ls('s_class'));
   if (!name) { toast('Kein aktiver Check-in'); return; }
 
   try {
@@ -1001,7 +1263,7 @@ async function manualLogout() {
 // ── ALLE AUSLOGGEN ───────────────────────────────────────────────
 async function confirmLogoutAll() {
   const todayStr = today();
-  let active = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+  let active = lastCheckins.filter(isActive);
   if (!active.length) {
     // lastCheckins noch nicht geladen – summary.json als Fallback lesen
     try { active = (await getSummary()).filter(c => c.raum_id); } catch(e) {}
@@ -1059,7 +1321,7 @@ async function getSummary() {
   const c = data.checkins || [];
   // Beide Formate unterstützen: Array (neu) und Objekt (Altdaten)
   const list = Array.isArray(c) ? c : Object.values(c);
-  return list.filter(validCheckin);
+  return list.map(normalizeCheckin).filter(validCheckin);
 }
 
 // Summary nach Check-in / Logout aktualisieren ────────────────────
@@ -1077,15 +1339,21 @@ async function updateSummary(entry) {
         if (!Array.isArray(existing.checkins)) {
           existing.checkins = Object.values(existing.checkins || {});
         }
+        // Altlasten aus Vortagen entfernen, damit die Datei klein bleibt
+        existing.checkins = existing.checkins
+          .filter(c => c && c.date === todayStr)
+          .map(normalizeCheckin)
+          .filter(validCheckin);
       }
     }
   } catch {}
   const key = sanitize(entry.name + '_' + (entry.klasse || ''));
   const idx = existing.checkins.findIndex(c => sanitize(c.name + '_' + (c.klasse || '')) === key);
   const se = {
-    type: entry.type, name: entry.name, klasse: entry.klasse,
+    type: entry.type, name: cleanName(entry.name), klasse: entry.klasse,
     raum_id: entry.raum_id || null, raum_name: entry.raum_name || '',
     timestamp: entry.timestamp, date: entry.date,
+    ...(entry.gueltig_bis ? {gueltig_bis: entry.gueltig_bis} : {}),
     ...(entry.fach ? {fach: entry.fach} : {})
   };
   if (idx >= 0) existing.checkins[idx] = se; else existing.checkins.push(se);
@@ -1117,7 +1385,24 @@ async function getAllCheckins() {
       return {href, lm};
     }).filter(f => f.href.endsWith('.json') && !f.href.endsWith('summary.json'));
 
-    const toFetch = fileInfos.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
+    // Nur Dateien laden, die in den letzten CFG.maxAgeWeeks Wochen zuletzt
+    // beschrieben wurden – also von Personen, die seither gescannt haben.
+    // Unlesbares Datum → sicherheitshalber behalten.
+    const cutoff = Date.now() - CFG.maxAgeWeeks * 7 * 86400000;
+    const recent = fileInfos.filter(f => {
+      const t = Date.parse(f.lm);
+      return !t || t >= cutoff;
+    });
+
+    // Cache von nicht mehr geladenen Dateien befreien (sonst wächst er unbegrenzt)
+    const live = new Set(recent.map(f => f.href));
+    for (const k of fileCache.keys()) if (!live.has(k)) fileCache.delete(k);
+
+    // Zu alte Dateien im Hintergrund löschen (blockiert das Dashboard nicht)
+    const stale = fileInfos.filter(f => !live.has(f.href));
+    if (stale.length) autoCleanup(stale).catch(()=>{});
+
+    const toFetch = recent.filter(f => { const c = fileCache.get(f.href); return !c || c.lm !== f.lm; });
     for (let i = 0; i < toFetch.length; i += 15) {
       const chunk = toFetch.slice(i, i + 15);
       await Promise.all(chunk.map(async f => {
@@ -1130,10 +1415,33 @@ async function getAllCheckins() {
         }
       }));
     }
-    return fileInfos.map(f => fileCache.get(f.href)?.data).filter(validCheckin);
+    return recent.map(f => fileCache.get(f.href)?.data).map(normalizeCheckin).filter(validCheckin);
   } finally {
     clearTimeout(tid); // immer aufräumen
   }
+}
+
+// ── AUTOMATISCHES AUFRÄUMEN ──────────────────────────────────────
+// Löscht Dateien von Personen, die seit CFG.maxAgeWeeks Wochen nicht mehr
+// gescannt haben (DSGVO: Speicherbegrenzung). Läuft nur im Dashboard, höchstens
+// einmal pro Tag und Gerät. Bewusst ohne Abort-Signal, damit das Aufräumen
+// nicht das Laden des Dashboards blockiert oder umgekehrt.
+async function autoCleanup(stale) {
+  if (!teacherUnlocked) return;
+  if (ls('cleanup_date') === today()) return;   // heute bereits erledigt
+  ls('cleanup_date', today());                  // Sperre sofort setzen
+
+  let geloescht = 0;
+  for (let i = 0; i < stale.length; i += 5) {
+    const chunk = stale.slice(i, i + 5);
+    await Promise.all(chunk.map(async f => {
+      try {
+        const r = await fetch(WORKER + f.href, {method: 'DELETE'});
+        if (r.ok || r.status === 404) { fileCache.delete(f.href); geloescht++; }
+      } catch(e) { /* einzelne Fehler ignorieren, nächster Versuch morgen */ }
+    }));
+  }
+  if (geloescht) toast(`Aufgeräumt: ${geloescht} seit über ${CFG.maxAgeWeeks} Wochen inaktive Einträge gelöscht`);
 }
 
 // Schützt das Rendering vor kaputten/unvollständigen JSON-Dateien.
@@ -1144,10 +1452,14 @@ function validCheckin(c) {
 
 // Lehrer schreibt nach jedem Poll eine frische summary.json für Schüler ──
 async function writeSummary(all) {
-  const checkins = all.map(c => ({
+  const todayStr = today();
+  // NUR heutige Einträge – sonst wächst die Datei über Monate auf hunderte KB
+  // an, die jedes Gerät alle 30 Sek. herunterlädt.
+  const checkins = all.filter(c => c.date === todayStr).map(c => ({
     type: c.type, name: c.name, klasse: c.klasse,
     raum_id: c.raum_id || null, raum_name: c.raum_name || '',
     timestamp: c.timestamp, date: c.date,
+    ...(c.gueltig_bis ? {gueltig_bis: c.gueltig_bis} : {}),
     ...(c.fach ? {fach: c.fach} : {})
   }));
   const summary = {date: today(), updated: new Date().toISOString(), checkins};
@@ -1181,13 +1493,13 @@ function renderRoomOverview(all) {
   const el = $('room-overview-content');
   if (!el) return;
   const todayStr = today();
-  const active   = all.filter(c => c.date === todayStr && c.raum_id);
+  const active   = all.filter(isActive);
   const teachers = active.filter(c => c.type === 'lehrer');
   const students = active.filter(c => c.type !== 'lehrer');
 
   // Warn-Banner: nur bei Kapazitäts-Räumen ohne Lernbegleiter
   const myCurrent = lsJson('s_current');
-  const myRoomId  = myCurrent && myCurrent.date === todayStr ? myCurrent.raum_id : null;
+  const myRoomId  = isActive(myCurrent) ? myCurrent.raum_id : null;
   const myRoom    = myRoomId ? ROOMS.find(r => r.id === myRoomId) : null;
   if (myRoom && myRoom.capacity !== null) {
     const hasTeacher = teachers.some(t => t.raum_id === myRoomId);
@@ -1298,7 +1610,7 @@ async function loadDashboard() {
       if (!quick || !quick.length) return;
       if (!$('t-dashboard').querySelector('.spinner')) return; // Vollständige Daten schon da
       const ts = today();
-      const qa = quick.filter(c => c.date === ts && c.raum_id);
+      const qa = quick.filter(isActive);
       if (safeRender(qa.filter(c => c.type === 'lehrer'), qa.filter(c => c.type !== 'lehrer'), searchQuery)) {
         $('t-last-update').textContent = '⏳ Wird aktualisiert …';
       }
@@ -1312,7 +1624,7 @@ async function loadDashboard() {
     writeSummary(all); // Frische summary.json für Schüleransicht schreiben
     dashboardErrorCount = 0;
     const todayStr = today();
-    const active   = all.filter(c => c.date === todayStr && c.raum_id);
+    const active   = all.filter(isActive);
     const teachers = active.filter(c => c.type === 'lehrer');
     const students = active.filter(c => c.type !== 'lehrer');
     if (safeRender(teachers, students, searchQuery)) {
@@ -1322,7 +1634,7 @@ async function loadDashboard() {
     console.error('loadDashboard fehlgeschlagen:', e);
     dashboardErrorCount++;
     const todayStr = today();
-    const active   = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+    const active   = lastCheckins.filter(isActive);
     if (active.length > 0) {
       // Gecachte Daten neu rendern – Spinner verschwindet, alte Ansicht bleibt
       if (safeRender(active.filter(c => c.type === 'lehrer'), active.filter(c => c.type !== 'lehrer'), searchQuery)) {
@@ -1535,7 +1847,7 @@ function onSearchInput(val) {
   $('t-search-clear').classList.toggle('visible', val.length > 0);
   if (!lastCheckins.length) return;
   const todayStr = today();
-  const active   = lastCheckins.filter(c => c.date === todayStr && c.raum_id);
+  const active   = lastCheckins.filter(isActive);
   renderDashboard(active.filter(c=>c.type==='lehrer'), active.filter(c=>c.type!=='lehrer'), val);
 }
 function clearSearch() {
@@ -1639,7 +1951,7 @@ async function loadTodayView() {
 
     // Lernbegleiter aus summary.json (1 Request)
     const all = await getSummary();
-    const activeTeachers = all.filter(c => c.type === 'lehrer' && c.date === todayStr && c.raum_id);
+    const activeTeachers = all.filter(c => c.type === 'lehrer' && isActive(c));
 
     let html = '';
 
