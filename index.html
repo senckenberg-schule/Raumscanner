@@ -484,7 +484,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 // ── AUTO-UPDATE (iOS PWA cached pages automatisch erneuern) ─────
-const APP_VERSION = '20260910';
+const APP_VERSION = '20260917';
 (function() {
   const stored = localStorage.getItem('rs2_app_ver');
   if (stored && stored !== APP_VERSION) {
@@ -501,6 +501,14 @@ const APP_VERSION = '20260910';
 // Die oberste Versionsnummer erscheint automatisch im Browser-Titel und
 // auf dem Startbildschirm. Sie muss also nur an dieser einen Stelle stehen.
 const CHANGELOG = [
+  {
+    version: '1.9.5',
+    datum: '17.09.2026',
+    punkte: [
+      'Fehler behoben: Die Einsatzzeiten der Lernbegleiter liefen in der Übersicht und in der Raumansicht nie ab – abgelaufene Einträge blieben dauerhaft stehen. Sie verschwinden jetzt wie vorgesehen.',
+      'Fehler behoben: In "Mein Tag" und im Verlaufs-Fenster wurden "Aktueller Raum" und die Markierung "Aktuell" auch dann noch angezeigt, wenn der Eintrag bereits abgelaufen war.',
+    ],
+  },
   {
     version: '1.9.4',
     datum: '10.09.2026',
@@ -1263,7 +1271,7 @@ async function manualLogout() {
 // ── ALLE AUSLOGGEN ───────────────────────────────────────────────
 async function confirmLogoutAll() {
   const todayStr = today();
-  let active = lastCheckins.filter(isActive);
+  let active = lastCheckins.filter(x => isActive(x));
   if (!active.length) {
     // lastCheckins noch nicht geladen – summary.json als Fallback lesen
     try { active = (await getSummary()).filter(c => c.raum_id); } catch(e) {}
@@ -1493,7 +1501,7 @@ function renderRoomOverview(all) {
   const el = $('room-overview-content');
   if (!el) return;
   const todayStr = today();
-  const active   = all.filter(isActive);
+  const active   = all.filter(x => isActive(x));
   const teachers = active.filter(c => c.type === 'lehrer');
   const students = active.filter(c => c.type !== 'lehrer');
 
@@ -1610,7 +1618,7 @@ async function loadDashboard() {
       if (!quick || !quick.length) return;
       if (!$('t-dashboard').querySelector('.spinner')) return; // Vollständige Daten schon da
       const ts = today();
-      const qa = quick.filter(isActive);
+      const qa = quick.filter(x => isActive(x));
       if (safeRender(qa.filter(c => c.type === 'lehrer'), qa.filter(c => c.type !== 'lehrer'), searchQuery)) {
         $('t-last-update').textContent = '⏳ Wird aktualisiert …';
       }
@@ -1624,7 +1632,7 @@ async function loadDashboard() {
     writeSummary(all); // Frische summary.json für Schüleransicht schreiben
     dashboardErrorCount = 0;
     const todayStr = today();
-    const active   = all.filter(isActive);
+    const active   = all.filter(x => isActive(x));
     const teachers = active.filter(c => c.type === 'lehrer');
     const students = active.filter(c => c.type !== 'lehrer');
     if (safeRender(teachers, students, searchQuery)) {
@@ -1634,7 +1642,7 @@ async function loadDashboard() {
     console.error('loadDashboard fehlgeschlagen:', e);
     dashboardErrorCount++;
     const todayStr = today();
-    const active   = lastCheckins.filter(isActive);
+    const active   = lastCheckins.filter(x => isActive(x));
     if (active.length > 0) {
       // Gecachte Daten neu rendern – Spinner verschwindet, alte Ansicht bleibt
       if (safeRender(active.filter(c => c.type === 'lehrer'), active.filter(c => c.type !== 'lehrer'), searchQuery)) {
@@ -1847,7 +1855,7 @@ function onSearchInput(val) {
   $('t-search-clear').classList.toggle('visible', val.length > 0);
   if (!lastCheckins.length) return;
   const todayStr = today();
-  const active   = lastCheckins.filter(isActive);
+  const active   = lastCheckins.filter(x => isActive(x));
   renderDashboard(active.filter(c=>c.type==='lehrer'), active.filter(c=>c.type!=='lehrer'), val);
 }
 function clearSearch() {
@@ -1919,7 +1927,7 @@ async function openHistoryModal(filename, personName) {
         <div class="tl-time">${fmtClock(h.timestamp)}</div>
         <div class="tl-room">
           <div class="tl-name">${esc(h.raum_name||h.raum_id)}</div>
-          ${i===0 && data.raum_id ? '<div class="tl-badge">● Aktuell</div>' : ''}
+          ${i===0 && isActive(data) ? '<div class="tl-badge">● Aktuell</div>' : ''}
         </div>
       </div>`;
     });
@@ -1955,7 +1963,7 @@ async function loadTodayView() {
 
     let html = '';
 
-    if (own && own.date === todayStr && own.raum_id) {
+    if (isActive(own)) {
       html += `<div class="current-hero">
         <div class="current-label">Aktueller Raum</div>
         <div class="current-room">📍 ${esc(own.raum_name)}</div>
@@ -1971,7 +1979,7 @@ async function loadTodayView() {
           <div class="tl-time">${fmtClock(h.timestamp)}</div>
           <div class="tl-room">
             <div class="tl-name">${esc(h.raum_name||h.raum_id)}</div>
-            ${i===0 && own.raum_id ? '<div class="tl-badge">● Aktuell</div>' : ''}
+            ${i===0 && isActive(own) ? '<div class="tl-badge">● Aktuell</div>' : ''}
           </div>
         </div>`;
       });
