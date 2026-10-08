@@ -1,6 +1,6 @@
 # Product Backlog – Arbeitszeittracker für Lehrkräfte (iOS)
 
-Stand: 2026-10-08 · Version 0.3
+Stand: 2026-10-08 · Version 0.4
 
 ## Änderungen gegenüber v0.1
 
@@ -9,6 +9,7 @@ Stand: 2026-10-08 · Version 0.3
 | Ziel: **App Store**, später ggf. **alternative App-Marktplätze** (EU) | Neues Epic **E10 Veröffentlichung & Rechtliches** (Datenschutzerklärung, Privacy Manifest, Store-Auftritt …) |
 | Zweck: **persönliches Zeittagebuch** (vorerst kein Nachweis) | Export bleibt „Should“, keine Revisionssicherheit; neue Tagebuch-Funktionen (Belastungsempfinden) |
 | **Bundesland und Schulform auswählbar** | Neues Epic **E11 Bundesland & Schulform** inkl. Recherche-Spike, Ferien/Feiertage werden wichtiger |
+| Motivation & Belohnung (v0.4) | Neues Epic **E13** mit US-64 bis US-71; Abzeichen-Katalog in [`ABZEICHEN.md`](ABZEICHEN.md); Motivationsregeln in der Definition of Done |
 | Widgets früh ermöglichen (v0.3) | Neuer Enabler TE-08 (App Group + App Intents) in Sprint 1; US-19 Widgets ✏️ nach Release 1.1 vorgezogen |
 | PO bittet um Ergänzungen | Neue Stories US-34 bis US-63, Technische Enabler und Spikes, MVP angepasst, technische Enabler ergänzt |
 
@@ -63,6 +64,7 @@ Bei Lehrkräften zählt nicht nur die Unterrichtszeit, deshalb braucht das Daten
 | **E10** | **Veröffentlichung & Rechtliches** | Store-Reife für App Store und alternative Marktplätze |
 | **E11** | **Bundesland & Schulform** | Länder- und schulformspezifische Vorgaben |
 | **E12** | **Persönliches Tagebuch** | Reflexion und Belastungsempfinden |
+| **E13** | **Motivation & Wohlbefinden** | Regelmäßiges Erfassen und gesunde Grenzen belohnen, nie Mehrarbeit |
 | **TE** | **Technische Enabler** | Architektur, Tests, Datenmigration, CI |
 
 ## 6. Priorisiertes Backlog
@@ -179,6 +181,26 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 | 🆕 US-62 | Als Lehrkraft möchte ich pro Tag mein **Belastungsempfinden** (z. B. 1–5) und eine kurze Notiz festhalten, um Zusammenhänge zu erkennen. | C | 3 |
 | 🆕 US-63 | Als Lehrkraft möchte ich einen **Wochenrückblick** („Diese Woche 46 h, davon 9 h am Wochenende“) als Benachrichtigung oder Ansicht. | C | 3 |
 
+### E13 Motivation & Wohlbefinden 🆕
+
+> **Leitgedanke:** Belohnt werden regelmäßiges Erfassen, Abschließen und Grenzen setzen, **niemals viele Arbeitsstunden**. Es gibt keine Ranglisten und keine Vergleiche mit anderen. Alles ist abschaltbar und lokal. Der Ton ist humorvoll, augenzwinkernd und wertschätzend (siehe [`ABZEICHEN.md`](ABZEICHEN.md)).
+
+| ID | User Story | Prio | SP |
+|---|---|---|---|
+| 🆕 US-64 | Als Lehrkraft möchte ich einen **Ferien-Countdown** („Noch 12 Schultage bis zu den Herbstferien“) auf dem Startscreen und im Widget, damit ich das Licht am Ende des Tunnels sehe. | S | 2 |
+| 🆕 US-65 | Als Lehrkraft möchte ich am Ende der Woche ein **Wochenabschluss-Ritual**: kurzer Rückblick, optional Belastungsempfinden, Woche mit einem Tipp „abschließen“, kleine Animation. | S | 3 |
+| 🆕 US-66 | Als Lehrkraft möchte ich in Auswertungen **wertschätzende Formulierungen** („Diese Woche: 6 Elterngespräche geführt“) statt nackter Zahlen. | S | 1 |
+| 🆕 US-67 | Als Lehrkraft möchte ich beim letzten Stopp des Tages einen **Feierabend-Moment**, und die App zählt meine **freien Abende und Wochenenden**. | S | 3 |
+| 🆕 US-68 | Als Lehrkraft möchte ich mir **persönliche Ziele** setzen („Sonntag frei“, „höchstens 2 Abende nach 20 Uhr pro Woche“) und den Fortschritt als Ring sehen. | C | 5 |
+| 🆕 US-69 | Als Lehrkraft möchte ich eine **sanfte Erfassungsserie**: Wochenenden und Ferien unterbrechen sie nicht, es gibt einen Joker pro Woche, und Erinnerungen machen keinen Druck. | C | 3 |
+| 🆕 US-70 | Als Lehrkraft möchte ich **humorvolle Abzeichen und Meilensteine** freischalten (Katalog in `ABZEICHEN.md`), inklusive geheimer Abzeichen, mit einer Sammelvitrine. | C | 5 |
+| 🆕 US-71 | Als Lehrkraft möchte ich zum Start der Sommerferien einen **„Dein Schuljahr“-Rückblick** in Karten erhalten und ihn ohne sensible Details als Bild teilen können. | S | 8 |
+
+**Akzeptanzkriterien (Auswahl)**
+- *US-70:* Abzeichen werden nur lokal berechnet. Das Freischalten zeigt eine kurze, mit „Bewegung reduzieren“ verträgliche Animation. Geheime Abzeichen erscheinen als „???“ mit einem Rätselhinweis. Die ganze Funktion ist in den Einstellungen abschaltbar.
+- *US-69:* Eine verpasste Serie wird nie mit negativer Sprache kommentiert („Serie verloren!“ ist verboten). Stattdessen heißt es z. B. „Neue Serie, neues Glück“.
+- *US-71:* Der Rückblick wird nur angeboten, wenn mindestens 8 Wochen Daten vorliegen. Das geteilte Bild enthält keine Notizen und keine Lerngruppen.
+
 ### TE Technische Enabler 🆕
 | ID | Enabler | Prio | SP |
 |---|---|---|---|
@@ -214,9 +236,11 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 
 **Umfang:** ca. 73 SP. Das entspricht Sprint 0 plus 4 Sprints à 2 Wochen bei angenommen ~18 SP pro Sprint. Die Velocity wird nach Sprint 1 neu bewertet; Sprint 1 ist bewusst voll (25 SP), notfalls rutscht US-02 in Sprint 2.
 
-**Release 1.1, „versteht das Schuljahr“:** US-60, 24, 23, 09, 40, 41, 44, 45, 13, 17, 21, 16, 55, **19 (Widgets)** → erste öffentliche Store-Version
+**Release 1.1, „versteht das Schuljahr“:** US-60, 24, 23, 09, 40, 41, 44, 45, 13, 17, 21, 16, 55, **19 (Widgets)**, **64, 65, 66 (Motivation)** → erste öffentliche Store-Version
 
-**Release 1.2+:** Auswertungen (US-12, 43), Live Activity, Kontrollzentrum, Siri, Lerngruppen, Tagebuch, Stundenplan, Monetarisierung
+**Release 1.2+:** Auswertungen (US-12, 43), Live Activity, Kontrollzentrum, Siri, Lerngruppen, Tagebuch, Stundenplan, Monetarisierung, Motivation (US-67 bis 70)
+
+**Fester Termin Sommer 2027:** US-71 „Dein Schuljahr“-Rückblick zum Ende des ersten Schuljahres mit der App
 
 ## 8. Sprint-Plan (Vorschlag)
 
@@ -264,6 +288,7 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 - VoiceOver und Dynamic Type für neue Screens geprüft, Dark Mode geprüft
 - Alle Texte in String Catalogs
 - Keine neuen Netzwerkzugriffe oder Dritt-SDKs ohne PO-Entscheidung (Datenschutzversprechen)
+- Motivationsfunktionen: abschaltbar, belohnen keine Arbeitsstunden, keine Vergleiche mit anderen, keine Druck- oder Schuldgefühl-Formulierungen
 - Läuft im Simulator und auf mindestens einem echten iPhone; per TestFlight verteilbar
 
 ## 11. Definition of Ready
