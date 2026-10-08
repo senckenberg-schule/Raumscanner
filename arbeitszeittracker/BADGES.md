@@ -1,23 +1,23 @@
-# Abzeichen & Meilensteine – Katalog (Entwurf v0.1)
+# Badges & Meilensteine – Katalog (Entwurf v0.1)
 
 Gehört zu Epic **E13 Motivation & Wohlbefinden**, User Story **US-70**.
 
 ## Spielregeln
 
-1. **Belohnt wird nie, viel zu arbeiten.** Kein Abzeichen für Überstunden, Nachtschichten oder Wochenendarbeit.
+1. **Belohnt wird nie, viel zu arbeiten.** Kein Badge für Überstunden, Nachtschichten oder Wochenendarbeit.
 2. **Belohnt wird:** Dranbleiben beim Erfassen, Abschließen, freie Zeit, gesunde Grenzen und das Überstehen typischer Schuljahres-Phasen.
 3. **Ton:** augenzwinkernd, kollegial, nie belehrend. Wir duzen. Insider-Humor aus dem Lehrerzimmer ist erwünscht.
 4. **Keine Vergleiche** mit anderen und keine Ranglisten.
 5. Alles wird **lokal berechnet** und ist **abschaltbar**.
 6. Namen sind **geschlechtsneutral** formuliert.
 
-**Stufen:** Manche Abzeichen haben Stufen 🥉 / 🥈 / 🥇. **Geheime Abzeichen** (🔒) erscheinen vorher als „???“ mit Rätselhinweis.
+**Stufen:** Manche Badges haben Stufen 🥉 / 🥈 / 🥇. **Geheime Badges** (🔒) erscheinen vorher als „???“ mit Rätselhinweis.
 
 ---
 
 ## 1. Dranbleiben – Erfassen & Abschließen
 
-| Abzeichen | Bedingung | Text beim Freischalten |
+| Badge | Bedingung | Text beim Freischalten |
 |---|---|---|
 | ✏️ **Erste Kreide** | Erster Eintrag | „Der erste Strich an der Tafel. Ab jetzt wird's dokumentiert.“ |
 | ⏱️ **Schneller als der Gong** | 25 × Schnellerfassung genutzt | „Timer gestartet, bevor die 7b überhaupt ‚Guten Morgen‘ gesagt hat.“ |
@@ -31,7 +31,7 @@ Gehört zu Epic **E13 Motivation & Wohlbefinden**, User Story **US-70**.
 
 ## 2. Grenzen & Erholung
 
-| Abzeichen | Bedingung | Text beim Freischalten |
+| Badge | Bedingung | Text beim Freischalten |
 |---|---|---|
 | 🌅 **Feierabend-Pionier** | Erster Feierabend-Moment | „Tasche zu. Kopf aus. Hach.“ |
 | 🛋️ **Sofa-Diplom** 🥉🥈🥇 | 10 / 50 / 150 freie Abende | 🥉 „Grundkurs Sofa bestanden.“ · 🥈 „Leistungskurs Sofa.“ · 🥇 „Promotion in Couchologie.“ |
@@ -44,7 +44,7 @@ Gehört zu Epic **E13 Motivation & Wohlbefinden**, User Story **US-70**.
 
 ## 3. Schuljahres-Meilensteine
 
-| Abzeichen | Bedingung | Text beim Freischalten |
+| Badge | Bedingung | Text beim Freischalten |
 |---|---|---|
 | 🎒 **Frisch gespitzt** | App am ersten Schultag nach den Sommerferien geöffnet | „Neue Bleistifte, neue Klassen, neues Glück.“ |
 | 🍂 **Herbstferien erreicht** | Erster Ferienbeginn mit der App erlebt | „Die Glocke hat geläutet. Ab in die Ferien!“ |
@@ -56,9 +56,9 @@ Gehört zu Epic **E13 Motivation & Wohlbefinden**, User Story **US-70**.
 | 🎓 **Versetzt!** | Ein komplettes Schuljahr dokumentiert | „Versetzung in das nächste Schuljahr: bestanden. Mit Auszeichnung.“ |
 | 🏛️ **Lehrkörper-Legende** | Drei Schuljahre dokumentiert | „Du gehörst inzwischen zum Inventar. Liebevoll gemeint.“ |
 
-## 4. Geheime Abzeichen 🔒 (Easter Eggs)
+## 4. Geheime Badges 🔒 (Easter Eggs)
 
-| Abzeichen | Rätselhinweis | Bedingung | Text |
+| Badge | Rätselhinweis | Bedingung | Text |
 |---|---|---|---|
 | 🖨️ **Kopierer-Flüsterer** | „Papierstau im Herzen …“ | Das Wort „Kopierer“ kommt in 5 Notizen vor | „Du und der Kopierer: eine komplizierte Beziehung.“ |
 | 🥧 **Kreiszahl** | „3,14 …“ | Eintrag am 14. März | „Alle Mathe-Lehrkräfte nicken jetzt wissend.“ |
@@ -78,11 +78,11 @@ Diese Ideen liegen nahe, widersprechen aber dem Leitgedanken:
 - ~~„Wochenend-Held“~~ für Arbeit am Wochenende
 - ~~„Ferien? Nie gehört“~~ für Arbeit in den Ferien
 
-Stattdessen gibt es bei viel Spät- oder Wochenendarbeit **freundliche Hinweise ohne Abzeichen**, z. B.: „Die Eule meldet sich: Das war diese Woche der dritte späte Abend. Morgen früh Schluss?“
+Stattdessen gibt es bei viel Spät- oder Wochenendarbeit **freundliche Hinweise ohne Badges**, z. B.: „Die Eule meldet sich: Das war diese Woche der dritte späte Abend. Morgen früh Schluss?“
 
 ## 6. Meilenstein-Momente (ohne Sammelvitrine)
 
-Kleine Einblendungen, die nicht als Abzeichen gesammelt werden:
+Kleine Einblendungen, die nicht als Badges gesammelt werden:
 
 - **Ferien-Countdown-Sprüche:** „Noch 5 Schultage. Die Kollegin am Kopierer lächelt schon.“ · „Noch 1 Schultag. Morgen läuft ein Film.“ · „FERIEN! 🎉 Bis zum Schulstart siehst du uns nur, wenn du willst.“
 - **Feierabend-Sprüche (rotierend):** „Feierabend! Der Rotstift hat jetzt auch frei.“ · „Tafel gewischt, Tag geschafft.“ · „Die Hefte bleiben in der Tasche. Versprochen?“
@@ -91,5 +91,5 @@ Kleine Einblendungen, die nicht als Abzeichen gesammelt werden:
 ## Offene Punkte
 
 - Endgültige Namen und Texte mit 3–5 Testlehrkräften abstimmen (Humor ist Geschmackssache)
-- Gestaltung der Abzeichen-Icons (eigener Illustrationsstil oder SF Symbols)
-- Prüfen, ob schulform- oder bundeslandspezifische Abzeichen sinnvoll sind (z. B. „Abi-Korrektur überstanden“ nur für Gymnasien)
+- Gestaltung der Badge-Icons (eigener Illustrationsstil oder SF Symbols)
+- Prüfen, ob schulform- oder bundeslandspezifische Badges sinnvoll sind (z. B. „Abi-Korrektur überstanden“ nur für Gymnasien)

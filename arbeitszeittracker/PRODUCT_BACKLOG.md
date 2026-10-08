@@ -9,7 +9,7 @@ Stand: 2026-10-08 · Version 0.4
 | Ziel: **App Store**, später ggf. **alternative App-Marktplätze** (EU) | Neues Epic **E10 Veröffentlichung & Rechtliches** (Datenschutzerklärung, Privacy Manifest, Store-Auftritt …) |
 | Zweck: **persönliches Zeittagebuch** (vorerst kein Nachweis) | Export bleibt „Should“, keine Revisionssicherheit; neue Tagebuch-Funktionen (Belastungsempfinden) |
 | **Bundesland und Schulform auswählbar** | Neues Epic **E11 Bundesland & Schulform** inkl. Recherche-Spike, Ferien/Feiertage werden wichtiger |
-| Motivation & Belohnung (v0.4) | Neues Epic **E13** mit US-64 bis US-71; Abzeichen-Katalog in [`ABZEICHEN.md`](ABZEICHEN.md); Motivationsregeln in der Definition of Done |
+| Motivation & Belohnung (v0.4) | Neues Epic **E13** mit US-64 bis US-71; Badge-Katalog in [`BADGES.md`](BADGES.md); Motivationsregeln in der Definition of Done |
 | Widgets früh ermöglichen (v0.3) | Neuer Enabler TE-08 (App Group + App Intents) in Sprint 1; US-19 Widgets ✏️ nach Release 1.1 vorgezogen |
 | PO bittet um Ergänzungen | Neue Stories US-34 bis US-63, Technische Enabler und Spikes, MVP angepasst, technische Enabler ergänzt |
 
@@ -183,7 +183,7 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 
 ### E13 Motivation & Wohlbefinden 🆕
 
-> **Leitgedanke:** Belohnt werden regelmäßiges Erfassen, Abschließen und Grenzen setzen, **niemals viele Arbeitsstunden**. Es gibt keine Ranglisten und keine Vergleiche mit anderen. Alles ist abschaltbar und lokal. Der Ton ist humorvoll, augenzwinkernd und wertschätzend (siehe [`ABZEICHEN.md`](ABZEICHEN.md)).
+> **Leitgedanke:** Belohnt werden regelmäßiges Erfassen, Abschließen und Grenzen setzen, **niemals viele Arbeitsstunden**. Es gibt keine Ranglisten und keine Vergleiche mit anderen. Alles ist abschaltbar und lokal. Der Ton ist humorvoll, augenzwinkernd und wertschätzend (siehe [`BADGES.md`](BADGES.md)).
 
 | ID | User Story | Prio | SP |
 |---|---|---|---|
@@ -193,11 +193,11 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 | 🆕 US-67 | Als Lehrkraft möchte ich beim letzten Stopp des Tages einen **Feierabend-Moment**, und die App zählt meine **freien Abende und Wochenenden**. | S | 3 |
 | 🆕 US-68 | Als Lehrkraft möchte ich mir **persönliche Ziele** setzen („Sonntag frei“, „höchstens 2 Abende nach 20 Uhr pro Woche“) und den Fortschritt als Ring sehen. | C | 5 |
 | 🆕 US-69 | Als Lehrkraft möchte ich eine **sanfte Erfassungsserie**: Wochenenden und Ferien unterbrechen sie nicht, es gibt einen Joker pro Woche, und Erinnerungen machen keinen Druck. | C | 3 |
-| 🆕 US-70 | Als Lehrkraft möchte ich **humorvolle Abzeichen und Meilensteine** freischalten (Katalog in `ABZEICHEN.md`), inklusive geheimer Abzeichen, mit einer Sammelvitrine. | C | 5 |
+| 🆕 US-70 | Als Lehrkraft möchte ich **humorvolle Badges und Meilensteine** freischalten (Katalog in `BADGES.md`), inklusive geheimer Badges, mit einer Sammelvitrine. | C | 5 |
 | 🆕 US-71 | Als Lehrkraft möchte ich zum Start der Sommerferien einen **„Dein Schuljahr“-Rückblick** in Karten erhalten und ihn ohne sensible Details als Bild teilen können. | S | 8 |
 
 **Akzeptanzkriterien (Auswahl)**
-- *US-70:* Abzeichen werden nur lokal berechnet. Das Freischalten zeigt eine kurze, mit „Bewegung reduzieren“ verträgliche Animation. Geheime Abzeichen erscheinen als „???“ mit einem Rätselhinweis. Die ganze Funktion ist in den Einstellungen abschaltbar.
+- *US-70:* Badges werden nur lokal berechnet. Das Freischalten zeigt eine kurze, mit „Bewegung reduzieren“ verträgliche Animation. Geheime Badges erscheinen als „???“ mit einem Rätselhinweis. Die ganze Funktion ist in den Einstellungen abschaltbar.
 - *US-69:* Eine verpasste Serie wird nie mit negativer Sprache kommentiert („Serie verloren!“ ist verboten). Stattdessen heißt es z. B. „Neue Serie, neues Glück“.
 - *US-71:* Der Rückblick wird nur angeboten, wenn mindestens 8 Wochen Daten vorliegen. Das geteilte Bild enthält keine Notizen und keine Lerngruppen.
 
