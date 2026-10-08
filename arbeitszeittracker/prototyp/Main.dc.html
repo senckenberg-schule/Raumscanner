@@ -2,36 +2,37 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<title>Arbeitszeittracker Prototyp</title>
+<title>Arbeitszeittracker Prototyp v2</title>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-a{color:#1F6F5C}a:hover{color:#164F42}
+a{color:#B8360C}a:hover{color:#8A2A0B}
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #F3F5F7; color: #172026; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 16px; line-height: 1.4">
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #F2F2F7; color: #000000; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; line-height: 1.3">
 
 <!-- ONBOARDING -->
 <sc-if value="{{isOnboarding}}" hint-placeholder-val="{{ false }}">
-<div style="flex: 1; overflow-y: auto; padding: 56px 24px 32px; display: flex; flex-direction: column; gap: 22px">
-<div style="width: 64px; height: 64px; border-radius: 18px; background: #1F6F5C; display: flex; align-items: center; justify-content: center">
-<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>
+<div style="flex: 1; overflow-y: auto; padding: 48px 16px 28px; display: flex; flex-direction: column; gap: 22px">
+<div style="padding: 0 4px; display: flex; flex-direction: column; gap: 14px">
+<div style="width: 64px; height: 64px; border-radius: 16px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="13" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="5"></circle><circle cx="20" cy="20" r="13" fill="none" stroke="#E2471C" stroke-width="5" stroke-linecap="round" stroke-dasharray="56 82" transform="rotate(-90 20 20)"></circle></svg>
+</div>
+<h1 style="margin: 0; font-size: 34px; font-weight: 700; line-height: 1.1">Schön, dass du da bist.</h1>
+<p style="margin: 0; color: #3C3C43">Drei kurze Angaben, dann geht's los. Alles lässt sich später ändern.</p>
 </div>
 <div style="display: flex; flex-direction: column; gap: 8px">
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; line-height: 1.1">Schön, dass du da bist.</h1>
-<p style="margin: 0; color: #4B5661">Drei kurze Angaben, dann geht's los. Alles lässt sich später ändern.</p>
-</div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="ob-land" style="font-weight: 700">Bundesland</label>
-<select id="ob-land" value="{{land}}" onChange="{{onLand}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Deine Schule</span>
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="ob-land" style="flex: 1">Bundesland</label>
+<select id="ob-land" value="{{land}}" onChange="{{onLand}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; max-width: 210px; height: 44px">
 <option value="Baden-Württemberg">Baden-Württemberg</option>
 <option value="Bayern">Bayern</option>
 <option value="Berlin">Berlin</option>
@@ -50,9 +51,9 @@ button{cursor:pointer}
 <option value="Thüringen">Thüringen</option>
 </select>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="ob-schulform" style="font-weight: 700">Schulform</label>
-<select id="ob-schulform" value="{{schulform}}" onChange="{{onSchulform}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px">
+<label for="ob-schulform" style="flex: 1">Schulform</label>
+<select id="ob-schulform" value="{{schulform}}" onChange="{{onSchulform}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; max-width: 210px; height: 44px">
 <option value="Grundschule">Grundschule</option>
 <option value="Hauptschule">Hauptschule</option>
 <option value="Realschule">Realschule</option>
@@ -62,124 +63,159 @@ button{cursor:pointer}
 <option value="Berufliche Schule">Berufliche Schule</option>
 </select>
 </div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="ob-umfang" style="font-weight: 700">Umfang (%)</label>
-<input id="ob-umfang" type="number" inputmode="numeric" min="10" max="100" value="{{umfang}}" onChange="{{onUmfang}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px; box-sizing: border-box; width: 100%">
-</div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="ob-stunden" style="font-weight: 700">Std./Woche</label>
-<input id="ob-stunden" type="number" inputmode="decimal" min="1" max="60" value="{{stunden}}" onChange="{{onStunden}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px; box-sizing: border-box; width: 100%">
 </div>
 </div>
-<p style="margin: 0; font-size: 14px; color: #4B5661">Später schlagen wir die Wochenarbeitszeit passend zu Bundesland und Schulform vor. Du kannst jeden Wert überschreiben.</p>
-<div style="display: flex; gap: 10px; align-items: flex-start; background: #E4EFEB; border-radius: 14px; padding: 14px">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F6F5C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
-<span style="font-size: 14px">Deine Daten bleiben auf deinem iPhone. Kein Konto, kein Tracking, keine Schülerdaten.</span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Deine Arbeitszeit</span>
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="ob-umfang" style="flex: 1">Beschäftigungsumfang</label>
+<input id="ob-umfang" type="number" min="10" max="100" value="{{umfang}}" onChange="{{onUmfang}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; width: 60px; height: 44px">
+<span style="color: #6C6C70">%</span>
+</div>
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px">
+<label for="ob-stunden" style="flex: 1">Wochenarbeitszeit</label>
+<input id="ob-stunden" type="number" min="1" max="60" value="{{stunden}}" onChange="{{onStunden}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; width: 60px; height: 44px">
+<span style="color: #6C6C70">h</span>
+</div>
+</div>
+<span style="font-size: 13px; color: #6C6C70; padding: 0 16px">Später schlagen wir die Werte passend zu Bundesland und Schulform vor. Du kannst jeden Wert überschreiben.</span>
+</div>
+<div style="display: flex; gap: 12px; align-items: center; background: #FFFFFF; border-radius: 14px; padding: 14px 16px">
+<span style="width: 30px; height: 30px; border-radius: 8px; background: #34C759; display: flex; align-items: center; justify-content: center; flex: none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+</span>
+<span style="font-size: 15px">Deine Daten bleiben auf deinem iPhone. Kein Konto, kein Tracking.</span>
 </div>
 <div style="flex: 1"></div>
-<button type="button" onClick="{{finishOnboarding}}" style="height: 54px; border: none; border-radius: 16px; background: #1F6F5C; color: #FFFFFF; font-weight: 700; font-size: 17px">Los geht's</button>
+<button type="button" onClick="{{finishOnboarding}}" style="height: 52px; border: none; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font-weight: 600; font-size: 17px">Los geht's</button>
 </div>
 </sc-if>
 
 <!-- HEUTE -->
 <sc-if value="{{isHeute}}" hint-placeholder-val="{{ true }}">
-<div style="flex: 1; overflow-y: auto; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 18px">
-<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 12px">
+<div style="flex: 1; overflow-y: auto; padding: 18px 16px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4px">
 <div style="display: flex; flex-direction: column; gap: 2px">
-<span style="font-size: 14px; color: #4B5661">Donnerstag, 8. Oktober</span>
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 34px; line-height: 1.05">Heute</h1>
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px">Donnerstag, 8. Oktober</span>
+<h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: 0.4px">Heute</h1>
 </div>
-<button type="button" onClick="{{openForm}}" style="height: 44px; padding: 0 14px; border-radius: 22px; border: none; background: #172026; color: #FFFFFF; font-weight: 700; display: flex; align-items: center; gap: 6px">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-Eintrag
-</button>
+<sc-if value="{{motivation}}" hint-placeholder-val="{{ true }}">
+<span style="display: flex; align-items: center; gap: 6px; background: #FFE8DF; color: #8A2A0B; border-radius: 18px; padding: 7px 12px; font-weight: 600; font-size: 14px; margin-bottom: 4px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A2A0B" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"></path></svg>
+9 Tage bis Ferien
+</span>
+</sc-if>
 </div>
 
-<sc-if value="{{motivation}}" hint-placeholder-val="{{ true }}">
-<div style="display: flex; align-items: center; gap: 14px; background: #FFF1E6; border-radius: 18px; padding: 14px 16px">
-<div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 34px; color: #B03A0A; line-height: 1">9</div>
-<div style="display: flex; flex-direction: column">
-<span style="font-weight: 700">Schultage bis zu den Ferien</span>
-<span style="font-size: 14px; color: #5A4A3E">Die Kollegin am Kopierer lächelt schon.</span>
+<div style="background: #FFFFFF; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 18px">
+<div style="position: relative; width: 132px; height: 132px; flex: none">
+<svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+<circle cx="66" cy="66" r="54" fill="none" stroke="#F1F1EE" stroke-width="14"></circle>
+<sc-for list="{{ring}}" as="r" hint-placeholder-count="3">
+<circle cx="66" cy="66" r="54" fill="none" stroke="{{r.color}}" stroke-width="14" stroke-dasharray="{{r.dash}}" stroke-dashoffset="{{r.offset}}" transform="rotate(-90 66 66)"></circle>
+</sc-for>
+</svg>
+<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center">
+<span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 26px; font-variant-numeric: tabular-nums">{{todayShort}}</span>
+<span style="font-size: 13px; color: #6C6C70">Stunden</span>
 </div>
 </div>
-</sc-if>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{legend}}" as="l" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 15px">
+<span style="width: 10px; height: 10px; border-radius: 5px; background: {{l.color}}; flex: none"></span>
+<span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{l.name}}</span>
+<span style="font-variant-numeric: tabular-nums; color: #3C3C43">{{l.dur}}</span>
+</div>
+</sc-for>
+<div style="border-top: 0.5px solid #D1D1D6; padding-top: 8px; font-size: 13px; color: #6C6C70">{{sollLine}}</div>
+</div>
+</div>
 
 <sc-if value="{{hasRunning}}" hint-placeholder-val="{{ false }}">
-<div style="background: #172026; color: #FFFFFF; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; align-items: center; gap: 8px">
-<span style="width: 10px; height: 10px; border-radius: 5px; background: {{runningColor}}"></span>
-<span style="font-weight: 700">{{runningName}}</span>
-<span style="font-size: 14px; color: #B8C2CC">seit {{runningSince}}</span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="background: {{accent}}; color: #FFFFFF; border-radius: 24px; padding: 12px 12px 12px 18px; display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: rgba(255, 255, 255, 0.85)"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{runningColor}}"></span>{{runningName}} · seit {{runningSince}}</span>
+<span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1.15">{{runningElapsed}}</span>
 </div>
-<div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 52px; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums">{{runningElapsed}}</div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
-<button type="button" onClick="{{stop}}" style="height: 48px; border-radius: 14px; border: none; background: #FFFFFF; color: #172026; font-weight: 700">Stopp</button>
-<button type="button" onClick="{{feierabend}}" style="height: 48px; border-radius: 14px; border: 1px solid #5B6874; background: transparent; color: #FFFFFF; font-weight: 700">Feierabend</button>
+<button type="button" onClick="{{feierabend}}" aria-label="Feierabend machen" style="width: 52px; height: 52px; border-radius: 26px; border: 2px solid rgba(255, 255, 255, 0.4); background: transparent; display: flex; align-items: center; justify-content: center; flex: none">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"></path></svg>
+</button>
+<button type="button" onClick="{{stop}}" aria-label="Timer stoppen" style="width: 52px; height: 52px; border-radius: 26px; border: none; background: #E2471C; display: flex; align-items: center; justify-content: center; flex: none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2.5"></rect></svg>
+</button>
 </div>
-<button type="button" onClick="{{skip30}}" style="align-self: flex-start; background: none; border: none; color: #B8C2CC; font-size: 14px; padding: 4px 0; text-decoration: underline">Demo: 30 Minuten vorspulen</button>
+<button type="button" onClick="{{skip30}}" style="align-self: center; background: none; border: none; color: #6C6C70; font-size: 13px; padding: 4px 8px; text-decoration: underline">Demo: 30 Minuten vorspulen</button>
 </div>
 </sc-if>
 
-<div style="display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; justify-content: space-between; align-items: baseline">
-<h2 style="margin: 0; font-size: 18px">Schnellstart</h2>
-<span style="font-size: 14px; color: #4B5661">Ein Tipp startet den Timer</span>
-</div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Schnellstart</span>
+<div style="background: #FFFFFF; border-radius: 14px; padding: 14px 6px 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 14px">
 <sc-for list="{{quick}}" as="c" hint-placeholder-count="8">
-<button type="button" onClick="{{c.start}}" aria-pressed="{{c.pressed}}" style="min-height: 52px; border-radius: 14px; border: 2px solid {{c.border}}; background: {{c.bg}}; display: flex; align-items: center; gap: 10px; padding: 0 14px; text-align: left; font-weight: 700">
-<span style="width: 12px; height: 12px; border-radius: 6px; background: {{c.color}}; flex: none"></span>
+<button type="button" onClick="{{c.start}}" aria-pressed="{{c.pressed}}" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; font-size: 12px; color: #000000; font-weight: {{c.weight}}">
+<span style="width: 52px; height: 52px; border-radius: 14px; background: {{c.color}}; display: flex; align-items: center; justify-content: center; box-shadow: {{c.ring}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<sc-if value="{{c.gBoard}}" hint-placeholder-val="{{ true }}"><rect x="3" y="4" width="18" height="12" rx="1.5"></rect><path d="M8 20l4-4 4 4"></path></sc-if>
+<sc-if value="{{c.gBook}}" hint-placeholder-val="{{ false }}"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></sc-if>
+<sc-if value="{{c.gPen}}" hint-placeholder-val="{{ false }}"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"></path><path d="M14 6l3 3"></path></sc-if>
+<sc-if value="{{c.gPeople}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M3 19c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 14.5c3 0 6 1.5 6 4.5"></path></sc-if>
+<sc-if value="{{c.gEye}}" hint-placeholder-val="{{ false }}"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></sc-if>
+<sc-if value="{{c.gBubble}}" hint-placeholder-val="{{ false }}"><path d="M4 5h16v11H9l-5 4z"></path></sc-if>
+<sc-if value="{{c.gFolder}}" hint-placeholder-val="{{ false }}"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></sc-if>
+<sc-if value="{{c.gDots}}" hint-placeholder-val="{{ false }}"><circle cx="6" cy="12" r="1.3"></circle><circle cx="12" cy="12" r="1.3"></circle><circle cx="18" cy="12" r="1.3"></circle></sc-if>
+</svg>
+</span>
 {{c.name}}
 </button>
 </sc-for>
 </div>
 </div>
 
-<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; justify-content: space-between; align-items: baseline">
-<span style="font-weight: 700">Heute erfasst</span>
-<span style="font-variant-numeric: tabular-nums"><strong>{{todayTotal}}</strong> <span style="color: #4B5661">von {{daySoll}}</span></span>
-</div>
-<div style="height: 10px; border-radius: 5px; background: #E3E7EB; overflow: hidden">
-<div style="height: 10px; width: {{todayPct}}%; background: #1F6F5C; border-radius: 5px"></div>
-</div>
-</div>
-
 <div style="display: flex; flex-direction: column; gap: 8px">
-<h2 style="margin: 0; font-size: 18px">Einträge</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px">Einträge</span>
+<button type="button" onClick="{{openForm}}" style="border: none; background: none; color: #B8360C; font-size: 15px; font-weight: 600; padding: 8px 0; display: flex; align-items: center; gap: 4px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8360C" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+Hinzufügen
+</button>
+</div>
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
 <sc-if value="{{noEntries}}" hint-placeholder-val="{{ false }}">
-<p style="margin: 0; color: #4B5661">Noch nichts erfasst. Tippe oben auf eine Tätigkeit.</p>
+<p style="margin: 0; padding: 14px 16px; color: #6C6C70">Noch nichts erfasst. Tippe oben auf eine Tätigkeit.</p>
 </sc-if>
 <sc-for list="{{todayEntries}}" as="e" hint-placeholder-count="4">
-<div style="background: #FFFFFF; border-radius: 14px; padding: 12px 8px 12px 14px; display: flex; align-items: center; gap: 12px">
-<span style="width: 4px; align-self: stretch; border-radius: 2px; background: {{e.color}}; flex: none"></span>
+<div style="display: flex; align-items: center; gap: 12px; padding: 8px 4px 8px 16px; border-bottom: {{e.border}}">
+<span style="width: 10px; height: 10px; border-radius: 5px; background: {{e.color}}; flex: none"></span>
 <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
-<span style="font-weight: 700">{{e.name}}</span>
-<span style="font-size: 14px; color: #4B5661">{{e.range}}{{e.noteSep}}{{e.note}}</span>
+<span>{{e.name}}</span>
+<span style="font-size: 14px; color: #6C6C70; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.range}}{{e.noteSep}}{{e.note}}</span>
 </div>
-<span style="font-variant-numeric: tabular-nums; font-weight: 700">{{e.dur}}</span>
+<span style="color: #3C3C43; font-variant-numeric: tabular-nums">{{e.dur}}</span>
 <button type="button" onClick="{{e.remove}}" aria-label="{{e.removeLabel}}" style="width: 44px; height: 44px; border: none; background: none; display: flex; align-items: center; justify-content: center; flex: none">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7680" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="#C7C7CC" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg>
 </button>
 </div>
 </sc-for>
+</div>
 </div>
 </div>
 </sc-if>
 
 <!-- MANUELLER EINTRAG -->
 <sc-if value="{{isForm}}" hint-placeholder-val="{{ false }}">
-<div style="flex: 1; overflow-y: auto; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="flex: 1; overflow-y: auto; padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 20px">
 <div style="display: flex; justify-content: space-between; align-items: center">
-<button type="button" onClick="{{goHeute}}" style="height: 44px; border: none; background: none; color: #1F6F5C; font-weight: 700; padding: 0">Abbrechen</button>
-<button type="button" onClick="{{saveForm}}" style="height: 44px; border: none; background: none; color: #1F6F5C; font-weight: 700; padding: 0">Sichern</button>
+<button type="button" onClick="{{goHeute}}" style="height: 44px; border: none; background: none; color: #B8360C; padding: 0">Abbrechen</button>
+<span style="font-weight: 600">Neuer Eintrag</span>
+<button type="button" onClick="{{saveForm}}" style="height: 44px; border: none; background: none; color: #B8360C; font-weight: 600; padding: 0">Sichern</button>
 </div>
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 30px">Neuer Eintrag</h1>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="f-cat" style="font-weight: 700">Tätigkeit</label>
-<select id="f-cat" value="{{form.cat}}" onChange="{{onFormCat}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px">
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="f-cat" style="flex: 1">Tätigkeit</label>
+<select id="f-cat" value="{{form.cat}}" onChange="{{onFormCat}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; height: 44px">
 <option value="unterricht">Unterricht</option>
 <option value="vorbereitung">Vorbereitung</option>
 <option value="korrektur">Korrektur</option>
@@ -190,104 +226,119 @@ Eintrag
 <option value="sonstiges">Sonstiges</option>
 </select>
 </div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="f-start" style="font-weight: 700">Beginn</label>
-<input id="f-start" type="time" value="{{form.start}}" onChange="{{onFormStart}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px; box-sizing: border-box; width: 100%">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="f-start" style="flex: 1">Beginn</label>
+<input id="f-start" type="time" value="{{form.start}}" onChange="{{onFormStart}}" style="border: none; background: #EFEFF4; border-radius: 8px; padding: 6px 10px; font-variant-numeric: tabular-nums">
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="f-end" style="font-weight: 700">Ende</label>
-<input id="f-end" type="time" value="{{form.end}}" onChange="{{onFormEnd}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px; box-sizing: border-box; width: 100%">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="f-end" style="flex: 1">Ende</label>
+<input id="f-end" type="time" value="{{form.end}}" onChange="{{onFormEnd}}" style="border: none; background: #EFEFF4; border-radius: 8px; padding: 6px 10px; font-variant-numeric: tabular-nums">
+</div>
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px">
+<span style="flex: 1">Dauer</span>
+<span style="color: #6C6C70; font-variant-numeric: tabular-nums">{{formDur}}</span>
 </div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="f-note" style="font-weight: 700">Notiz (optional)</label>
-<textarea id="f-note" rows="3" value="{{form.note}}" onChange="{{onFormNote}}" placeholder="z. B. Klausur 10b korrigiert" style="border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 12px; resize: none"></textarea>
-<span style="font-size: 14px; color: #4B5661">Bitte keine Namen von Schülerinnen und Schülern eintragen.</span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="f-note" style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Notiz</label>
+<textarea id="f-note" rows="3" value="{{form.note}}" onChange="{{onFormNote}}" placeholder="z. B. Klausur 10b korrigiert" style="border: none; border-radius: 14px; background: #FFFFFF; padding: 12px 16px; resize: none"></textarea>
+<span style="font-size: 13px; color: #6C6C70; padding: 0 16px">Bitte keine Namen von Schülerinnen und Schülern eintragen.</span>
 </div>
 <sc-if value="{{hasFormError}}" hint-placeholder-val="{{ false }}">
-<p role="alert" style="margin: 0; color: #A3290B; font-weight: 700">{{formError}}</p>
+<p role="alert" style="margin: 0; padding: 0 16px; color: #C4001A; font-weight: 600">{{formError}}</p>
 </sc-if>
-<div style="background: #FFFFFF; border-radius: 14px; padding: 14px; display: flex; justify-content: space-between">
-<span style="color: #4B5661">Dauer</span>
-<strong style="font-variant-numeric: tabular-nums">{{formDur}}</strong>
-</div>
 </div>
 </sc-if>
 
 <!-- WOCHE -->
 <sc-if value="{{isWoche}}" hint-placeholder-val="{{ false }}">
-<div style="flex: 1; overflow-y: auto; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 18px">
-<div style="display: flex; flex-direction: column; gap: 2px">
-<span style="font-size: 14px; color: #4B5661">5. – 11. Oktober</span>
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 34px; line-height: 1.05">Woche</h1>
+<div style="flex: 1; overflow-y: auto; padding: 18px 16px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px">5. – 11. Oktober</span>
+<h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: 0.4px">Woche</h1>
 </div>
 
 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
 <div style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
-<span style="font-size: 13px; color: #4B5661">Ist</span>
-<strong style="font-size: 20px; font-variant-numeric: tabular-nums">{{weekIst}}</strong>
+<span style="font-size: 13px; color: #6C6C70">Ist</span>
+<span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums">{{weekIst}}</span>
 </div>
 <div style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
-<span style="font-size: 13px; color: #4B5661">Soll bis heute</span>
-<strong style="font-size: 20px; font-variant-numeric: tabular-nums">{{weekSoll}}</strong>
+<span style="font-size: 13px; color: #6C6C70">Soll bis heute</span>
+<span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums">{{weekSoll}}</span>
 </div>
 <div style="background: {{diffBg}}; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
-<span style="font-size: 13px; color: #4B5661">Differenz</span>
-<strong style="font-size: 20px; font-variant-numeric: tabular-nums; color: {{diffColor}}">{{weekDiff}}</strong>
+<span style="font-size: 13px; color: #3C3C43">Differenz</span>
+<span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; color: {{diffColor}}">{{weekDiff}}</span>
 </div>
 </div>
 
-<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #4B5661">
-<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #1F6F5C"></span>im Soll</span>
-<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #E8833A"></span>darüber</span>
-<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; border-top: 2px dashed #172026"></span>Soll/Tag</span>
-</div>
-<div style="position: relative; height: 150px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end">
-<div style="position: absolute; left: 0; right: 0; bottom: {{sollPx}}px; border-top: 2px dashed #172026; opacity: 0.55"></div>
+<div style="background: #FFFFFF; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="position: relative; height: 150px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: end">
+<div style="position: absolute; left: 0; right: 0; bottom: {{sollPx}}px; border-top: 1.5px dashed #8E8E93"></div>
 <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
 <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 150px">
-<div style="height: {{d.over}}px; background: #E8833A; border-radius: 6px 6px 0 0"></div>
-<div style="height: {{d.within}}px; background: {{d.fill}}; border-radius: {{d.radius}}"></div>
+<div style="height: {{d.over}}px; background: #E2471C; border-radius: 7px 7px 0 0"></div>
+<div style="height: {{d.within}}px; background: {{accent}}; border-radius: {{d.radius}}"></div>
 </div>
 </sc-for>
 </div>
-<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; text-align: center; font-size: 13px">
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; text-align: center; font-size: 13px">
 <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
 <div style="display: flex; flex-direction: column">
 <span style="font-weight: {{d.weight}}">{{d.label}}</span>
-<span style="color: #4B5661; font-variant-numeric: tabular-nums">{{d.short}}</span>
+<span style="color: #6C6C70; font-variant-numeric: tabular-nums">{{d.short}}</span>
 </div>
 </sc-for>
+</div>
+<div style="display: flex; gap: 14px; font-size: 13px; color: #6C6C70; border-top: 0.5px solid #D1D1D6; padding-top: 10px">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{accent}}"></span>im Soll</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #E2471C"></span>darüber</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; border-top: 1.5px dashed #8E8E93"></span>Soll pro Tag</span>
 </div>
 </div>
 
 <sc-if value="{{motivation}}" hint-placeholder-val="{{ true }}">
-<p style="margin: 0; background: #E4EFEB; border-radius: 14px; padding: 14px; font-size: 15px">{{appreciation}}</p>
+<p style="margin: 0; background: #FFE8DF; color: #4A1A08; border-radius: 14px; padding: 14px 16px; font-size: 15px">{{appreciation}}</p>
 </sc-if>
 
-<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
-<h2 style="margin: 0; font-size: 18px">Nach Tätigkeit</h2>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Nach Tätigkeit</span>
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
 <sc-for list="{{breakdown}}" as="b" hint-placeholder-count="6">
-<div style="display: flex; flex-direction: column; gap: 4px">
-<div style="display: flex; justify-content: space-between; font-size: 15px">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: {{b.border}}">
+<span style="width: 30px; height: 30px; border-radius: 8px; background: {{b.color}}; display: flex; align-items: center; justify-content: center; flex: none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<sc-if value="{{b.gBoard}}" hint-placeholder-val="{{ true }}"><rect x="3" y="4" width="18" height="12" rx="1.5"></rect><path d="M8 20l4-4 4 4"></path></sc-if>
+<sc-if value="{{b.gBook}}" hint-placeholder-val="{{ false }}"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></sc-if>
+<sc-if value="{{b.gPen}}" hint-placeholder-val="{{ false }}"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"></path><path d="M14 6l3 3"></path></sc-if>
+<sc-if value="{{b.gPeople}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M3 19c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 14.5c3 0 6 1.5 6 4.5"></path></sc-if>
+<sc-if value="{{b.gEye}}" hint-placeholder-val="{{ false }}"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></sc-if>
+<sc-if value="{{b.gBubble}}" hint-placeholder-val="{{ false }}"><path d="M4 5h16v11H9l-5 4z"></path></sc-if>
+<sc-if value="{{b.gFolder}}" hint-placeholder-val="{{ false }}"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></sc-if>
+<sc-if value="{{b.gDots}}" hint-placeholder-val="{{ false }}"><circle cx="6" cy="12" r="1.3"></circle><circle cx="12" cy="12" r="1.3"></circle><circle cx="18" cy="12" r="1.3"></circle></sc-if>
+</svg>
+</span>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between">
 <span>{{b.name}}</span>
-<span style="font-variant-numeric: tabular-nums; color: #4B5661">{{b.dur}}</span>
+<span style="color: #6C6C70; font-variant-numeric: tabular-nums">{{b.dur}}</span>
 </div>
-<div style="height: 8px; border-radius: 4px; background: #EEF1F4">
-<div style="height: 8px; border-radius: 4px; width: {{b.pct}}%; background: {{b.color}}"></div>
+<div style="height: 6px; border-radius: 3px; background: #F1F1EE">
+<div style="height: 6px; border-radius: 3px; width: {{b.pct}}%; background: {{b.color}}"></div>
+</div>
 </div>
 </div>
 </sc-for>
 </div>
+</div>
 
 <sc-if value="{{weekOpen}}" hint-placeholder-val="{{ true }}">
-<button type="button" onClick="{{closeWeek}}" style="height: 54px; border: none; border-radius: 16px; background: #1F6F5C; color: #FFFFFF; font-weight: 700; font-size: 17px">Woche abschließen</button>
+<button type="button" onClick="{{closeWeek}}" style="height: 52px; border: none; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font-weight: 600; font-size: 17px">Woche abschließen</button>
 </sc-if>
 <sc-if value="{{weekClosed}}" hint-placeholder-val="{{ false }}">
-<div style="height: 54px; border-radius: 16px; background: #E4EFEB; color: #164F42; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#164F42" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+<div style="height: 52px; border-radius: 14px; background: #FFFFFF; color: #1D7A3A; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D7A3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
 Woche abgeschlossen
 </div>
 </sc-if>
@@ -296,20 +347,20 @@ Woche abgeschlossen
 
 <!-- BADGES -->
 <sc-if value="{{isBadges}}" hint-placeholder-val="{{ false }}">
-<div style="flex: 1; overflow-y: auto; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 16px">
-<div style="display: flex; flex-direction: column; gap: 2px">
-<span style="font-size: 14px; color: #4B5661">{{badgeCount}}</span>
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 34px; line-height: 1.05">Badges</h1>
+<div style="flex: 1; overflow-y: auto; padding: 18px 16px 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px">{{badgeCount}}</span>
+<h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: 0.4px">Badges</h1>
 </div>
 <sc-if value="{{motivationOff}}" hint-placeholder-val="{{ false }}">
-<p style="margin: 0; background: #FFFFFF; border-radius: 14px; padding: 14px">Badges sind ausgeschaltet. Du kannst sie in den Einstellungen wieder einschalten.</p>
+<p style="margin: 0; background: #FFFFFF; border-radius: 14px; padding: 14px 16px">Badges sind ausgeschaltet. Du kannst sie in den Einstellungen wieder einschalten.</p>
 </sc-if>
 <sc-if value="{{motivation}}" hint-placeholder-val="{{ true }}">
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
 <sc-for list="{{badges}}" as="b" hint-placeholder-count="8">
-<div style="background: #FFFFFF; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px; opacity: {{b.opacity}}">
-<div style="width: 48px; height: 48px; border-radius: 24px; background: {{b.bg}}; display: flex; align-items: center; justify-content: center">
-<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{b.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<div style="background: #FFFFFF; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="width: 52px; height: 52px; border-radius: 26px; background: {{b.bg}}; display: flex; align-items: center; justify-content: center; box-shadow: {{b.ring}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{b.stroke}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <sc-if value="{{b.gPencil}}" hint-placeholder-val="{{ false }}"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"></path><path d="M14 6l3 3"></path></sc-if>
 <sc-if value="{{b.gClock}}" hint-placeholder-val="{{ false }}"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></sc-if>
 <sc-if value="{{b.gCheck}}" hint-placeholder-val="{{ false }}"><path d="M5 12.5l4.5 4.5L19 7.5"></path></sc-if>
@@ -319,8 +370,8 @@ Woche abgeschlossen
 <sc-if value="{{b.gSecret}}" hint-placeholder-val="{{ false }}"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"></path><path d="M12 17.5v.01"></path></sc-if>
 </svg>
 </div>
-<span style="font-weight: 700; line-height: 1.2">{{b.title}}</span>
-<span style="font-size: 13px; color: #4B5661; line-height: 1.35">{{b.desc}}</span>
+<span style="font-weight: 600; font-size: 16px; line-height: 1.2">{{b.title}}</span>
+<span style="font-size: 13px; color: #6C6C70; line-height: 1.35">{{b.desc}}</span>
 </div>
 </sc-for>
 </div>
@@ -330,12 +381,14 @@ Woche abgeschlossen
 
 <!-- EINSTELLUNGEN -->
 <sc-if value="{{isSettings}}" hint-placeholder-val="{{ false }}">
-<div style="flex: 1; overflow-y: auto; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 16px">
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 34px; line-height: 1.05">Einstellungen</h1>
-<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="s-land" style="font-weight: 700">Bundesland</label>
-<select id="s-land" value="{{land}}" onChange="{{onLand}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px">
+<div style="flex: 1; overflow-y: auto; padding: 18px 16px 24px; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; padding: 0 4px; font-size: 34px; font-weight: 700; letter-spacing: 0.4px">Einstellungen</h1>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Schule &amp; Soll</span>
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="s-land" style="flex: 1">Bundesland</label>
+<select id="s-land" value="{{land}}" onChange="{{onLand}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; max-width: 210px; height: 44px">
 <option value="Baden-Württemberg">Baden-Württemberg</option>
 <option value="Bayern">Bayern</option>
 <option value="Berlin">Berlin</option>
@@ -354,9 +407,9 @@ Woche abgeschlossen
 <option value="Thüringen">Thüringen</option>
 </select>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="s-schulform" style="font-weight: 700">Schulform</label>
-<select id="s-schulform" value="{{schulform}}" onChange="{{onSchulform}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="s-schulform" style="flex: 1">Schulform</label>
+<select id="s-schulform" value="{{schulform}}" onChange="{{onSchulform}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; max-width: 210px; height: 44px">
 <option value="Grundschule">Grundschule</option>
 <option value="Hauptschule">Hauptschule</option>
 <option value="Realschule">Realschule</option>
@@ -366,82 +419,86 @@ Woche abgeschlossen
 <option value="Berufliche Schule">Berufliche Schule</option>
 </select>
 </div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="s-umfang" style="font-weight: 700">Umfang (%)</label>
-<input id="s-umfang" type="number" min="10" max="100" value="{{umfang}}" onChange="{{onUmfang}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px; box-sizing: border-box; width: 100%">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 0.5px solid #D1D1D6">
+<label for="s-umfang" style="flex: 1">Beschäftigungsumfang</label>
+<input id="s-umfang" type="number" min="10" max="100" value="{{umfang}}" onChange="{{onUmfang}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; width: 60px; height: 44px">
+<span style="color: #6C6C70">%</span>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="s-stunden" style="font-weight: 700">Std./Woche</label>
-<input id="s-stunden" type="number" min="1" max="60" value="{{stunden}}" onChange="{{onStunden}}" style="height: 48px; border-radius: 12px; border: 1px solid #C9D0D6; background: #FFFFFF; padding: 0 12px; box-sizing: border-box; width: 100%">
+<div style="display: flex; align-items: center; min-height: 48px; padding: 0 16px">
+<label for="s-stunden" style="flex: 1">Wochenarbeitszeit</label>
+<input id="s-stunden" type="number" min="1" max="60" value="{{stunden}}" onChange="{{onStunden}}" style="border: none; background: transparent; color: #6C6C70; text-align: right; width: 60px; height: 44px">
+<span style="color: #6C6C70">h</span>
 </div>
 </div>
-<span style="font-size: 14px; color: #4B5661">Soll pro Schultag: <strong>{{daySoll}}</strong>. Unverbindlicher Orientierungswert, keine Rechtsberatung.</span>
-</div>
-
-<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 12px">
-<label for="s-motivation" style="flex: 1; display: flex; flex-direction: column">
-<span style="font-weight: 700">Badges &amp; Ferien-Countdown</span>
-<span style="font-size: 14px; color: #4B5661">Belohnt Dranbleiben und freie Abende, nie Überstunden.</span>
-</label>
-<input id="s-motivation" type="checkbox" checked="{{motivation}}" onChange="{{toggleMotivation}}" style="width: 28px; height: 28px; accent-color: #1F6F5C">
+<span style="font-size: 13px; color: #6C6C70; padding: 0 16px">Soll pro Schultag: {{daySoll}}. Unverbindlicher Orientierungswert, keine Rechtsberatung.</span>
 </div>
 
-<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
-<span style="font-weight: 700">Daten</span>
-<span style="font-size: 14px; color: #4B5661">Alles liegt nur auf diesem iPhone. Export und Backup folgen.</span>
-<button type="button" onClick="{{deleteAll}}" style="height: 48px; border-radius: 14px; border: 1px solid #A3290B; background: {{deleteBg}}; color: {{deleteColor}}; font-weight: 700">{{deleteLabel}}</button>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Motivation</span>
+<div style="background: #FFFFFF; border-radius: 14px; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px">
+<label for="s-motivation" style="flex: 1">Badges &amp; Ferien-Countdown</label>
+<input id="s-motivation" type="checkbox" checked="{{motivation}}" onChange="{{toggleMotivation}}" style="width: 26px; height: 26px; accent-color: #1D7A3A">
 </div>
-<button type="button" onClick="{{restartOnboarding}}" style="height: 44px; border: none; background: none; color: #1F6F5C; font-weight: 700">Onboarding erneut ansehen</button>
+<span style="font-size: 13px; color: #6C6C70; padding: 0 16px">Belohnt Dranbleiben und freie Abende, nie Überstunden.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #6C6C70; text-transform: uppercase; letter-spacing: 0.3px; padding: 0 16px">Daten</span>
+<div style="background: #FFFFFF; border-radius: 14px; overflow: hidden">
+<button type="button" onClick="{{restartOnboarding}}" style="width: 100%; min-height: 48px; border: none; border-bottom: 0.5px solid #D1D1D6; background: none; text-align: left; padding: 0 16px; color: #B8360C">Onboarding erneut ansehen</button>
+<button type="button" onClick="{{deleteAll}}" style="width: 100%; min-height: 48px; border: none; background: {{deleteBg}}; text-align: left; padding: 0 16px; color: {{deleteColor}}; font-weight: {{deleteWeight}}">{{deleteLabel}}</button>
+</div>
+<span style="font-size: 13px; color: #6C6C70; padding: 0 16px">Alles liegt nur auf diesem iPhone. Export und Backup folgen.</span>
+</div>
 </div>
 </sc-if>
 
 <!-- TAB BAR -->
 <sc-if value="{{showTabs}}" hint-placeholder-val="{{ true }}">
-<nav aria-label="Hauptnavigation" style="flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #DDE2E7; padding: 6px 8px 24px">
-<button type="button" onClick="{{goHeute}}" aria-current="{{tabHeute.current}}" style="height: 54px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: {{tabHeute.color}}; font-size: 12px; font-weight: 700">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{tabHeute.color}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>
+<nav aria-label="Hauptnavigation" style="flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: rgba(249, 249, 249, 0.94); border-top: 0.5px solid #C6C6C8; padding: 6px 8px 26px">
+<button type="button" onClick="{{goHeute}}" aria-current="{{tabHeute.current}}" style="height: 50px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: {{tabHeute.color}}; font-size: 10px; font-weight: 600">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{tabHeute.color}}" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
 Heute
 </button>
-<button type="button" onClick="{{goWoche}}" aria-current="{{tabWoche.current}}" style="height: 54px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: {{tabWoche.color}}; font-size: 12px; font-weight: 700">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{tabWoche.color}}" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 19v-8M12 19V5M19 19v-6"></path></svg>
+<button type="button" onClick="{{goWoche}}" aria-current="{{tabWoche.current}}" style="height: 50px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: {{tabWoche.color}}; font-size: 10px; font-weight: 600">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{tabWoche.color}}" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 19v-8M12 19V5M19 19v-6"></path></svg>
 Woche
 </button>
-<button type="button" onClick="{{goBadges}}" aria-current="{{tabBadges.current}}" style="height: 54px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: {{tabBadges.color}}; font-size: 12px; font-weight: 700">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{tabBadges.color}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"></circle><path d="M8.6 13.2L7 20l5-2.6 5 2.6-1.6-6.8"></path></svg>
+<button type="button" onClick="{{goBadges}}" aria-current="{{tabBadges.current}}" style="height: 50px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: {{tabBadges.color}}; font-size: 10px; font-weight: 600">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{tabBadges.color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"></circle><path d="M8.6 13.2L7 20l5-2.6 5 2.6-1.6-6.8"></path></svg>
 Badges
 </button>
-<button type="button" onClick="{{goSettings}}" aria-current="{{tabSettings.current}}" style="height: 54px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: {{tabSettings.color}}; font-size: 12px; font-weight: 700">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{tabSettings.color}}" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h3M12 17h8"></path><circle cx="15.5" cy="7" r="2.3"></circle><circle cx="9.5" cy="17" r="2.3"></circle></svg>
+<button type="button" onClick="{{goSettings}}" aria-current="{{tabSettings.current}}" style="height: 50px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: {{tabSettings.color}}; font-size: 10px; font-weight: 600">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{tabSettings.color}}" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h3M12 17h8"></path><circle cx="15.5" cy="7" r="2.3"></circle><circle cx="9.5" cy="17" r="2.3"></circle></svg>
 Einstellungen
 </button>
 </nav>
 </sc-if>
 
-<!-- TOAST / FEIER-MOMENT -->
+<!-- FEIER-MOMENT -->
 <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
-<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 30, 0.5); display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box">
-<div role="dialog" aria-modal="true" aria-labelledby="toast-title" style="width: 100%; background: #FFFFFF; border-radius: 28px; padding: 28px 22px 22px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
-<div style="width: 76px; height: 76px; border-radius: 38px; background: #1F6F5C; display: flex; align-items: center; justify-content: center">
+<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box">
+<div role="dialog" aria-modal="true" aria-labelledby="toast-title" style="width: 100%; background: #FFFFFF; border-radius: 30px; padding: 28px 20px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<div style="width: 80px; height: 80px; border-radius: 40px; background: {{accent}}; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 6px #FFE8DF">
 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <sc-if value="{{toast.moon}}" hint-placeholder-val="{{ false }}"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"></path></sc-if>
 <sc-if value="{{toast.check}}" hint-placeholder-val="{{ false }}"><path d="M5 12.5l4.5 4.5L19 7.5"></path></sc-if>
 <sc-if value="{{toast.star}}" hint-placeholder-val="{{ true }}"><path d="M12 4l2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"></path></sc-if>
 </svg>
 </div>
-<h2 id="toast-title" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 26px; line-height: 1.15">{{toast.title}}</h2>
-<p style="margin: 0; color: #36414B">{{toast.text}}</p>
+<h2 id="toast-title" style="margin: 6px 0 0; font-size: 24px; font-weight: 700; line-height: 1.15">{{toast.title}}</h2>
+<p style="margin: 0; color: #3C3C43">{{toast.text}}</p>
 <sc-if value="{{toast.hasBadge}}" hint-placeholder-val="{{ false }}">
-<div style="background: #FFF1E6; color: #7A2A08; border-radius: 12px; padding: 8px 14px; font-weight: 700; font-size: 15px">Neues Badge: {{toast.badge}}</div>
+<div style="background: #FFE8DF; color: #8A2A0B; border-radius: 12px; padding: 8px 14px; font-weight: 600; font-size: 15px">Neues Badge: {{toast.badge}}</div>
 </sc-if>
-<button type="button" onClick="{{closeToast}}" style="margin-top: 6px; width: 100%; height: 52px; border: none; border-radius: 16px; background: #172026; color: #FFFFFF; font-weight: 700; font-size: 17px">Weiter</button>
+<button type="button" onClick="{{closeToast}}" style="margin-top: 8px; width: 100%; height: 52px; border: none; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-weight: 600; font-size: 17px">Weiter</button>
 </div>
 </div>
 </sc-if>
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F4C5C","options":["#0F4C5C","#2B3A8F","#4A2545","#1F4D3A"]},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   constructor(...args) {
     super(...args);
@@ -485,19 +542,26 @@ class Component extends DCLogic {
 
   cats() {
     return [
-      { id: 'unterricht', name: 'Unterricht', color: '#1F6F5C' },
-      { id: 'vorbereitung', name: 'Vorbereitung', color: '#2F6FB3' },
-      { id: 'korrektur', name: 'Korrektur', color: '#C2410C' },
-      { id: 'konferenz', name: 'Konferenz', color: '#7C5CBF' },
-      { id: 'aufsicht', name: 'Aufsicht', color: '#A16207' },
-      { id: 'eltern', name: 'Gespräche', color: '#0E7490' },
-      { id: 'organisation', name: 'Organisation', color: '#64748B' },
-      { id: 'sonstiges', name: 'Sonstiges', color: '#8A8F98' }
+      { id: 'unterricht', name: 'Unterricht', color: '#0F766E', g: 'board' },
+      { id: 'vorbereitung', name: 'Vorbereitung', color: '#1D4ED8', g: 'book' },
+      { id: 'korrektur', name: 'Korrektur', color: '#C2410C', g: 'pen' },
+      { id: 'konferenz', name: 'Konferenz', color: '#6D28D9', g: 'people' },
+      { id: 'aufsicht', name: 'Aufsicht', color: '#A16207', g: 'eye' },
+      { id: 'eltern', name: 'Gespräche', color: '#0E7490', g: 'bubble' },
+      { id: 'organisation', name: 'Organisation', color: '#475569', g: 'folder' },
+      { id: 'sonstiges', name: 'Sonstiges', color: '#BE185D', g: 'dots' }
     ];
   }
 
   cat(id) {
     return this.cats().find((c) => c.id === id) || this.cats()[7];
+  }
+
+  glyphs(g) {
+    return {
+      gBoard: g === 'board', gBook: g === 'book', gPen: g === 'pen', gPeople: g === 'people',
+      gEye: g === 'eye', gBubble: g === 'bubble', gFolder: g === 'folder', gDots: g === 'dots'
+    };
   }
 
   badgeDefs() {
@@ -527,6 +591,11 @@ class Component extends DCLogic {
     return Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') + ' h';
   }
 
+  fmtShort(min) {
+    const m = Math.max(0, Math.round(min));
+    return Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0');
+  }
+
   clock(ms) {
     const d = new Date(ms);
     return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
@@ -553,8 +622,7 @@ class Component extends DCLogic {
   unlockInto(st, id) {
     if (!this.state.motivation || st.unlocked.indexOf(id) >= 0) return null;
     st.unlocked = st.unlocked.concat([id]);
-    const b = this.badgeDefs().find((x) => x.id === id);
-    return b;
+    return this.badgeDefs().find((x) => x.id === id);
   }
 
   badgeToast(b) {
@@ -588,6 +656,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
+    const accent = this.props.accent ?? '#0F4C5C';
     const cats = this.cats();
     const go = (screen) => () => this.setState({ screen: screen, confirmDelete: false, formError: '' });
     const val = (key, num) => (e) => {
@@ -606,7 +675,7 @@ class Component extends DCLogic {
     // Heute
     const daySoll = this.daySollMin();
     const sorted = s.entries.slice().sort((a, b) => this.toMin(a.start) - this.toMin(b.start));
-    const todayEntries = sorted.map((e) => {
+    const todayEntries = sorted.map((e, i) => {
       const c = this.cat(e.cat);
       return {
         name: c.name,
@@ -615,23 +684,49 @@ class Component extends DCLogic {
         note: e.note,
         noteSep: e.note ? ' · ' : '',
         dur: this.fmt(e.min),
+        border: i < sorted.length - 1 ? '0.5px solid #D1D1D6' : 'none',
         removeLabel: c.name + ' ' + e.start + ' löschen',
         remove: () => this.setState({ entries: this.state.entries.filter((x) => x.id !== e.id) })
       };
     });
-    const entriesMin = s.entries.reduce((a, e) => a + e.min, 0);
-    const todayMin = entriesMin + this.runningMin();
+    const todayByCat = {};
+    s.entries.forEach((e) => { todayByCat[e.cat] = (todayByCat[e.cat] || 0) + e.min; });
+    if (s.running) todayByCat[s.running.cat] = (todayByCat[s.running.cat] || 0) + this.runningMin();
+    const todayMin = Object.keys(todayByCat).reduce((a, k) => a + todayByCat[k], 0);
+
+    const circ = 2 * Math.PI * 54;
+    const den = Math.max(daySoll, todayMin, 1);
+    let acc = 0;
+    const ring = [];
+    cats.forEach((c) => {
+      const m = todayByCat[c.id] || 0;
+      if (m <= 0) return;
+      const len = (m / den) * circ;
+      ring.push({ color: c.color, dash: Math.max(0, len - 2).toFixed(1) + ' ' + circ.toFixed(1), offset: (-acc).toFixed(1) });
+      acc += len;
+    });
+    const legend = cats
+      .map((c) => ({ name: c.name, color: c.color, m: todayByCat[c.id] || 0 }))
+      .filter((c) => c.m > 0)
+      .sort((a, b) => b.m - a.m)
+      .slice(0, 3)
+      .map((c) => ({ name: c.name, color: c.color, dur: this.fmtShort(c.m) }));
+    const overToday = todayMin - daySoll;
+    const sollLine = overToday > 0
+      ? this.fmtShort(overToday) + ' h über dem Tagessoll'
+      : 'Tagessoll ' + this.fmt(daySoll);
+
     const runningCat = s.running ? this.cat(s.running.cat) : null;
     const quick = cats.map((c) => {
       const on = !!(s.running && s.running.cat === c.id);
-      return {
+      return Object.assign({
         name: c.name,
         color: c.color,
         pressed: on ? 'true' : 'false',
-        border: on ? c.color : '#FFFFFF',
-        bg: on ? '#F0F5F3' : '#FFFFFF',
+        ring: on ? '0 0 0 3px #FFFFFF, 0 0 0 5px ' + c.color : 'none',
+        weight: on ? '700' : '400',
         start: () => this.startCat(c.id)
-      };
+      }, this.glyphs(c.g));
     });
 
     // Woche
@@ -649,8 +744,7 @@ class Component extends DCLogic {
         short: future ? '–' : (Math.round(m / 6) / 10).toString().replace('.', ','),
         within: Math.round(within),
         over: Math.round(over),
-        fill: i === 3 ? '#2E8B73' : '#1F6F5C',
-        radius: over > 0 ? '0 0 6px 6px' : '6px',
+        radius: over > 0 ? '0 0 7px 7px' : '7px',
         weight: i === 3 ? '700' : '400'
       };
     });
@@ -658,14 +752,19 @@ class Component extends DCLogic {
     const weekSollMin = daySoll * 4;
     const diff = weekMin - weekSollMin;
     const base = { unterricht: 810, vorbereitung: 360, korrektur: 270, konferenz: 90, aufsicht: 60, eltern: 45, organisation: 30, sonstiges: 0 };
-    s.entries.forEach((e) => { base[e.cat] = (base[e.cat] || 0) + e.min; });
-    if (s.running) base[s.running.cat] = (base[s.running.cat] || 0) + this.runningMin();
+    Object.keys(todayByCat).forEach((k) => { base[k] = (base[k] || 0) + todayByCat[k]; });
     const maxCat = Math.max.apply(null, cats.map((c) => base[c.id] || 0)) || 1;
-    const breakdown = cats
-      .map((c) => ({ name: c.name, color: c.color, m: base[c.id] || 0 }))
-      .filter((c) => c.m > 0)
-      .sort((a, b) => b.m - a.m)
-      .map((c) => ({ name: c.name, color: c.color, dur: this.fmt(c.m), pct: Math.max(3, Math.round((c.m / maxCat) * 100)) }));
+    const bdList = cats
+      .map((c) => ({ c: c, m: base[c.id] || 0 }))
+      .filter((x) => x.m > 0)
+      .sort((a, b) => b.m - a.m);
+    const breakdown = bdList.map((x, i) => Object.assign({
+      name: x.c.name,
+      color: x.c.color,
+      dur: this.fmt(x.m),
+      pct: Math.max(3, Math.round((x.m / maxCat) * 100)),
+      border: i < bdList.length - 1 ? '0.5px solid #D1D1D6' : 'none'
+    }, this.glyphs(x.c.g)));
     const gespraeche = 2 + s.entries.filter((e) => e.cat === 'eltern').length;
     const appreciation = 'Diese Woche hast du ' + this.fmt(base.unterricht) + ' unterrichtet, ' + this.fmt(base.korrektur) + ' korrigiert und ' + gespraeche + ' Gespräche geführt. Das ist eine Menge Schule.';
 
@@ -677,9 +776,9 @@ class Component extends DCLogic {
       return {
         title: hidden ? '???' : b.name,
         desc: on ? b.text : (b.secret ? 'Geheim: ' + b.hint : b.cond),
-        bg: on ? '#1F6F5C' : '#E3E7EB',
-        stroke: on ? '#FFFFFF' : '#6B7680',
-        opacity: on ? '1' : '0.85',
+        bg: on ? accent : '#E5E5EA',
+        ring: on ? '0 0 0 4px #FFE8DF' : 'none',
+        stroke: on ? '#FFFFFF' : '#6C6C70',
         gPencil: !hidden && b.g === 'pencil',
         gClock: !hidden && b.g === 'clock',
         gCheck: !hidden && b.g === 'check',
@@ -696,7 +795,7 @@ class Component extends DCLogic {
     const formDur = fEnd > fStart ? this.fmt(fEnd - fStart) : '–';
 
     const tab = (name) => ({
-      color: s.screen === name ? '#1F6F5C' : '#5F6B76',
+      color: s.screen === name ? '#B8360C' : '#6C6C70',
       current: s.screen === name ? 'page' : 'false'
     });
 
@@ -707,6 +806,7 @@ class Component extends DCLogic {
     ];
 
     return {
+      accent: accent,
       isOnboarding: s.screen === 'onboarding',
       isHeute: s.screen === 'heute',
       isForm: s.screen === 'form',
@@ -730,6 +830,10 @@ class Component extends DCLogic {
       motivationOff: !s.motivation,
       toggleMotivation: () => this.setState({ motivation: !this.state.motivation }),
 
+      ring: ring,
+      legend: legend,
+      sollLine: sollLine,
+      todayShort: this.fmtShort(todayMin),
       quick: quick,
       hasRunning: !!s.running,
       runningName: runningCat ? runningCat.name : '',
@@ -758,9 +862,7 @@ class Component extends DCLogic {
 
       todayEntries: todayEntries,
       noEntries: todayEntries.length === 0,
-      todayTotal: this.fmt(todayMin),
       daySoll: this.fmt(daySoll),
-      todayPct: daySoll > 0 ? Math.min(100, Math.round((todayMin / daySoll) * 100)) : 0,
 
       openForm: () => this.setState({ screen: 'form', formError: '', form: { cat: 'korrektur', start: '16:30', end: '18:00', note: '' } }),
       goHeute: go('heute'),
@@ -802,8 +904,8 @@ class Component extends DCLogic {
       weekIst: this.fmt(weekMin),
       weekSoll: this.fmt(weekSollMin),
       weekDiff: (diff >= 0 ? '+' : '−') + this.fmt(Math.abs(diff)),
-      diffColor: diff > 0 ? '#9A3412' : '#164F42',
-      diffBg: diff > 0 ? '#FFF1E6' : '#E4EFEB',
+      diffColor: diff > 0 ? '#8A2A0B' : '#1D5E33',
+      diffBg: diff > 0 ? '#FFE8DF' : '#E3F4E8',
       breakdown: breakdown,
       appreciation: appreciation,
       weekOpen: !s.weekClosed,
@@ -824,9 +926,10 @@ class Component extends DCLogic {
       badges: badges,
       badgeCount: s.unlocked.length + ' von ' + defs.length + ' freigeschaltet',
 
-      deleteLabel: s.confirmDelete ? 'Wirklich alles löschen?' : 'Alle Daten löschen',
-      deleteBg: s.confirmDelete ? '#A3290B' : '#FFFFFF',
-      deleteColor: s.confirmDelete ? '#FFFFFF' : '#A3290B',
+      deleteLabel: s.confirmDelete ? 'Wirklich alles löschen? Nochmal tippen' : 'Alle Daten löschen',
+      deleteBg: s.confirmDelete ? '#C4001A' : 'transparent',
+      deleteColor: s.confirmDelete ? '#FFFFFF' : '#C4001A',
+      deleteWeight: s.confirmDelete ? '600' : '400',
       deleteAll: () => {
         if (!this.state.confirmDelete) { this.setState({ confirmDelete: true }); return; }
         const fresh = this.initialState();
