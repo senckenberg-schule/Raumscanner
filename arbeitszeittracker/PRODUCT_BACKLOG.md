@@ -1,6 +1,6 @@
 # Product Backlog – Arbeitszeittracker für Lehrkräfte (iOS)
 
-Stand: 2026-10-08 · Version 0.4
+Stand: 2026-10-08 · Version 0.5
 
 ## Änderungen gegenüber v0.1
 
@@ -9,6 +9,7 @@ Stand: 2026-10-08 · Version 0.4
 | Ziel: **App Store**, später ggf. **alternative App-Marktplätze** (EU) | Neues Epic **E10 Veröffentlichung & Rechtliches** (Datenschutzerklärung, Privacy Manifest, Store-Auftritt …) |
 | Zweck: **persönliches Zeittagebuch** (vorerst kein Nachweis) | Export bleibt „Should“, keine Revisionssicherheit; neue Tagebuch-Funktionen (Belastungsempfinden) |
 | **Bundesland und Schulform auswählbar** | Neues Epic **E11 Bundesland & Schulform** inkl. Recherche-Spike, Ferien/Feiertage werden wichtiger |
+| Null-Aufwand-Erfassung (v0.5) | Leitprinzip „kein Mehraufwand“; neues Epic **E14** mit US-72 bis US-75; US-25 Stundenplan ✏️ auf Should/Release 1.1; messbare UX-Ziele und Usability-Tests in der Definition of Done |
 | Motivation & Belohnung (v0.4) | Neues Epic **E13** mit US-64 bis US-71; Badge-Katalog in [`BADGES.md`](BADGES.md); Motivationsregeln in der Definition of Done |
 | Widgets früh ermöglichen (v0.3) | Neuer Enabler TE-08 (App Group + App Intents) in Sprint 1; US-19 Widgets ✏️ nach Release 1.1 vorgezogen |
 | PO bittet um Ergänzungen | Neue Stories US-34 bis US-63, Technische Enabler und Spikes, MVP angepasst, technische Enabler ergänzt |
@@ -16,6 +17,8 @@ Stand: 2026-10-08 · Version 0.4
 ## 1. Produktvision
 
 > Für Lehrkräfte, die ihre tatsächliche Arbeitszeit realistisch erfassen wollen, ist der **Arbeitszeittracker** ein persönliches Zeittagebuch für iPhone. Es erfasst Zeiten mit minimalem Aufwand, kennt die Besonderheiten des Schuljahres (Bundesland, Schulform, Pflichtstunden, Ferien) und zeigt verständliche Auswertungen. Alle Daten bleiben auf dem Gerät: ohne Account, ohne Tracking und ohne Schülerdaten.
+
+> **Leitprinzip „kein Mehraufwand“:** Die App darf nie selbst zur Belastung werden. Was planbar ist (Stundenplan, Kalendertermine), trägt die App selbst ein; die Lehrkraft bestätigt nur noch. Eine Tätigkeit ist in höchstens 2 Tipps erfasst, ein normaler Schultag in unter 30 Sekunden vollständig.
 
 **Nutzen:** Transparenz über die eigene Belastung, bessere Selbststeuerung (Work-Life-Balance) und eine Grundlage für Gespräche mit Schulleitung oder Personalrat.
 
@@ -65,6 +68,7 @@ Bei Lehrkräften zählt nicht nur die Unterrichtszeit, deshalb braucht das Daten
 | **E11** | **Bundesland & Schulform** | Länder- und schulformspezifische Vorgaben |
 | **E12** | **Persönliches Tagebuch** | Reflexion und Belastungsempfinden |
 | **E13** | **Motivation & Wohlbefinden** | Regelmäßiges Erfassen und gesunde Grenzen belohnen, nie Mehrarbeit |
+| **E14** | **Null-Aufwand-Erfassung** | Planbares trägt die App selbst ein, die Lehrkraft bestätigt nur |
 | **TE** | **Technische Enabler** | Architektur, Tests, Datenmigration, CI |
 
 ## 6. Priorisiertes Backlog
@@ -124,7 +128,7 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 |---|---|---|---|
 | US-23 | Als Lehrkraft möchte ich **Schuljahre** anlegen (automatisch passend zum Bundesland), damit Auswertungen pro Schuljahr möglich sind. | S | 5 |
 | ✏️ US-24 | Als Lehrkraft möchte ich **Ferien und Feiertage meines Bundeslands** automatisch hinterlegt haben (offline mitgeliefert, manuell ergänzbar, z. B. bewegliche Ferientage der Schule). | S | 8 |
-| US-25 | Als Lehrkraft möchte ich meinen **Stundenplan** (inkl. A/B-Wochen) hinterlegen und Unterricht daraus automatisch vorschlagen lassen. | C | 13 |
+| ✏️ US-25 | Als Lehrkraft möchte ich meinen **Stundenplan** (inkl. A/B-Wochen, Doppelstunden) einmal hinterlegen, und **Unterricht wird an Schultagen automatisch eingetragen** (Ferien und Feiertage ausgenommen), sodass ich ihn nur noch bestätige. Teil von E14. | S | 13 |
 | US-26 | Als Lehrkraft möchte ich **Vorlagen für wiederkehrende Termine** (z. B. Dienstbesprechung Mi 14:30, 90 Min.). | C | 8 |
 | 🆕 US-45 | Als Lehrkraft möchte ich **Abwesenheiten** (Krankheit, Sonderurlaub, Elternzeit) eintragen, damit sie das Soll korrekt mindern. | S | 5 |
 | 🆕 US-46 | Als Lehrkraft an **mehreren Schulen** (Abordnung) möchte ich Einträge einer Schule zuordnen. | C | 5 |
@@ -201,11 +205,28 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 - *US-69:* Eine verpasste Serie wird nie mit negativer Sprache kommentiert („Serie verloren!“ ist verboten). Stattdessen heißt es z. B. „Neue Serie, neues Glück“.
 - *US-71:* Der Rückblick wird nur angeboten, wenn mindestens 8 Wochen Daten vorliegen. Das geteilte Bild enthält keine Notizen und keine Lerngruppen.
 
+### E14 Null-Aufwand-Erfassung 🆕
+
+> Ziel: Die Lehrkraft erfasst nur noch das Unplanbare. Alles Planbare kommt automatisch und wird mit einem Tipp bestätigt. Grundlage ist US-25 (Stundenplan).
+
+| ID | User Story | Prio | SP |
+|---|---|---|---|
+| 🆕 US-72 | Als Lehrkraft möchte ich abends einen **Tagesabschluss mit einem Tipp**: Eine Mitteilung zeigt „Heute: 6 h Unterricht laut Plan, 1,5 h Konferenz laut Kalender. Passt?“, und ich bestätige direkt in der Mitteilung oder korrigiere. | S | 5 |
+| 🆕 US-73 | Als Lehrkraft möchte ich Termine wie Konferenzen und Elternabende aus meinem **iPhone-Kalender übernehmen** (nur lesend, auswählbare Kalender, Auswertung nur auf dem Gerät), damit ich sie nicht doppelt erfasse. | S | 8 |
+| 🆕 US-74 | Als Lehrkraft möchte ich **Abweichungen vom Stundenplan mit einem Tipp** markieren: Stunde fällt aus, Vertretung, Wandertag, Klassenfahrt. | S | 5 |
+| 🆕 US-75 | Als Lehrkraft möchte ich optional beim **Verlassen der Schule** gefragt werden „Arbeit mit nach Hause genommen?“, damit ich Heimarbeit nicht vergesse. Der Standort wird nur auf dem Gerät ausgewertet und ist standardmäßig aus. | C | 5 |
+
+**Akzeptanzkriterien (Auswahl)**
+- *US-25:* Automatisch eingetragener Unterricht ist als „aus Stundenplan“ erkennbar und bis zur Bestätigung vorläufig. An Ferientagen und Feiertagen des gewählten Bundeslands wird nichts eingetragen.
+- *US-72:* Die Bestätigung funktioniert direkt aus der Mitteilung heraus, ohne die App zu öffnen. Die Uhrzeit ist einstellbar, und die Mitteilung kommt nicht an freien Tagen.
+- *US-73:* Ohne Kalenderfreigabe funktioniert die App vollständig weiter. Die Zuordnung Termin → Tätigkeit wird gelernt (z. B. „Konferenz“ im Titel → Konferenz).
+- *US-75:* Die Funktion ist opt-in. Die Erklärung zum Standort erscheint, bevor iOS um Erlaubnis fragt.
+
 ### TE Technische Enabler 🆕
 | ID | Enabler | Prio | SP |
 |---|---|---|---|
 | TE-01 | Projektsetup: Xcode-Projekt, Ordnerstruktur, SwiftLint, Git-Workflow | M | 3 |
-| TE-02 | Datenmodell (SwiftData) mit **Schema-Versionierung und Migrationsplan** von Anfang an | M | 5 |
+| ✏️ TE-02 | Datenmodell (SwiftData) mit **Schema-Versionierung und Migrationsplan** von Anfang an; Einträge haben eine **Herkunft** (manuell, Timer, Stundenplan, Kalender) und einen **Status** (vorläufig, bestätigt), damit E14 ohne Umbau möglich ist | M | 5 |
 | TE-03 | Zeitlogik als **eigenständig testbares Modul** (Swift Package): Dauer, Soll/Ist, Sommerzeit, Mitternacht | M | 5 |
 | TE-04 | CI (z. B. Xcode Cloud oder GitHub Actions mit macOS-Runner): Build und Tests bei jedem Push | S | 5 |
 | TE-05 | TestFlight-Verteilung für Testlehrkräfte | S | 2 |
@@ -236,7 +257,7 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 
 **Umfang:** ca. 73 SP. Das entspricht Sprint 0 plus 4 Sprints à 2 Wochen bei angenommen ~18 SP pro Sprint. Die Velocity wird nach Sprint 1 neu bewertet; Sprint 1 ist bewusst voll (25 SP), notfalls rutscht US-02 in Sprint 2.
 
-**Release 1.1, „versteht das Schuljahr“:** US-60, 24, 23, 09, 40, 41, 44, 45, 13, 17, 21, 16, 55, **19 (Widgets)**, **64, 65, 66 (Motivation)** → erste öffentliche Store-Version
+**Release 1.1, „versteht das Schuljahr“:** US-60, 24, 23, 09, 40, 41, 44, 45, 13, 17, 21, 16, 55, **19 (Widgets)**, **64, 65, 66 (Motivation)**, **25, 72, 73, 74 (Null-Aufwand)** → erste öffentliche Store-Version
 
 **Release 1.2+:** Auswertungen (US-12, 43), Live Activity, Kontrollzentrum, Siri, Lerngruppen, Tagebuch, Stundenplan, Monetarisierung, Motivation (US-67 bis 70)
 
@@ -288,6 +309,8 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 - VoiceOver und Dynamic Type für neue Screens geprüft, Dark Mode geprüft
 - Alle Texte in String Catalogs
 - Keine neuen Netzwerkzugriffe oder Dritt-SDKs ohne PO-Entscheidung (Datenschutzversprechen)
+- **UX-Ziele:** Eine Tätigkeit ist in höchstens 2 Tipps bzw. 5 Sekunden erfasst; ein normaler Schultag ist in unter 30 Sekunden vollständig
+- **Usability-Test** mit 2–3 Lehrkräften in jedem Sprint ab Sprint 2; Erkenntnisse fließen ins Backlog
 - Motivationsfunktionen: abschaltbar, belohnen keine Arbeitsstunden, keine Vergleiche mit anderen, keine Druck- oder Schuldgefühl-Formulierungen
 - Läuft im Simulator und auf mindestens einem echten iPhone; per TestFlight verteilbar
 
