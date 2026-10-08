@@ -1,6 +1,6 @@
 # Product Backlog – Arbeitszeittracker für Lehrkräfte (iOS)
 
-Stand: 2026-10-08 · Version 0.2
+Stand: 2026-10-08 · Version 0.3
 
 ## Änderungen gegenüber v0.1
 
@@ -9,6 +9,7 @@ Stand: 2026-10-08 · Version 0.2
 | Ziel: **App Store**, später ggf. **alternative App-Marktplätze** (EU) | Neues Epic **E10 Veröffentlichung & Rechtliches** (Datenschutzerklärung, Privacy Manifest, Store-Auftritt …) |
 | Zweck: **persönliches Zeittagebuch** (vorerst kein Nachweis) | Export bleibt „Should“, keine Revisionssicherheit; neue Tagebuch-Funktionen (Belastungsempfinden) |
 | **Bundesland und Schulform auswählbar** | Neues Epic **E11 Bundesland & Schulform** inkl. Recherche-Spike, Ferien/Feiertage werden wichtiger |
+| Widgets früh ermöglichen (v0.3) | Neuer Enabler TE-08 (App Group + App Intents) in Sprint 1; US-19 Widgets ✏️ nach Release 1.1 vorgezogen |
 | PO bittet um Ergänzungen | Neue Stories US-34 bis US-63, Technische Enabler und Spikes, MVP angepasst, technische Enabler ergänzt |
 
 ## 1. Produktvision
@@ -129,7 +130,7 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 ### E7 Erinnerungen & Komfort
 | ID | User Story | Prio | SP |
 |---|---|---|---|
-| US-19 | Als Lehrkraft möchte ich **Widgets** (Home- und Sperrbildschirm) mit Start/Stopp und Wochensumme. | S | 8 |
+| ✏️ US-19 | Als Lehrkraft möchte ich **Widgets** (Home- und Sperrbildschirm) mit Start/Stopp und Wochensumme. Vorgezogen nach Release 1.1, baut auf TE-08 auf. | S | 8 |
 | US-20 | Als Lehrkraft möchte ich eine **Live Activity / Dynamic Island** für den laufenden Timer. | C | 5 |
 | US-21 | Als Lehrkraft möchte ich **Erinnerungen** („Heute noch nichts erfasst“, „Timer läuft seit 4 h“), abschaltbar, mit Ruhezeiten. | S | 3 |
 | US-22 | Als Lehrkraft möchte ich Timer per **Siri/Kurzbefehle (App Intents)** starten und stoppen. | C | 5 |
@@ -188,6 +189,7 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 | TE-05 | TestFlight-Verteilung für Testlehrkräfte | S | 2 |
 | TE-06 | Crash- und Performance-Daten nur über Apple (App Store Connect / MetricKit), keine Dritt-SDKs | S | 1 |
 | TE-07 | Alle Texte in String Catalogs (bereitet Lokalisierung vor) | M | 1 |
+| 🆕 TE-08 | **Widget-Fähigkeit vorbereiten:** Datenspeicher in einer App Group (gemeinsam für App und Widget-Extension), Start/Stopp des Timers als App Intents. Grundlage für US-19, 20, 22, 47 | M | 2 |
 
 ### Spikes (Recherche, zeitlich begrenzt) 🆕
 | ID | Fragestellung | Timebox |
@@ -207,21 +209,21 @@ Schätzung in Story Points (Fibonacci). Priorität: **M** = Must (MVP), **S** = 
 | Kontext und Soll | US-27, 59, 08 (Werte zunächst manuell, Vorschläge folgen mit US-60) |
 | Übersicht | US-07 |
 | Datenschutz | US-15, 49 |
-| Qualität | US-28, TE-01, 02, 03, 07 |
+| Qualität | US-28, TE-01, 02, 03, 07, 08 |
 | Store-Pflicht | US-53, 54, 56 |
 
-**Umfang:** ca. 71 SP. Das entspricht Sprint 0 plus 4 Sprints à 2 Wochen bei angenommen ~18 SP pro Sprint. Die Velocity wird nach Sprint 1 neu bewertet; Sprint 1 ist bewusst voll, notfalls rutscht US-02 in Sprint 2.
+**Umfang:** ca. 73 SP. Das entspricht Sprint 0 plus 4 Sprints à 2 Wochen bei angenommen ~18 SP pro Sprint. Die Velocity wird nach Sprint 1 neu bewertet; Sprint 1 ist bewusst voll (25 SP), notfalls rutscht US-02 in Sprint 2.
 
-**Release 1.1, „versteht das Schuljahr“:** US-60, 24, 23, 09, 40, 41, 44, 45, 13, 17, 21, 16, 55 → erste öffentliche Store-Version
+**Release 1.1, „versteht das Schuljahr“:** US-60, 24, 23, 09, 40, 41, 44, 45, 13, 17, 21, 16, 55, **19 (Widgets)** → erste öffentliche Store-Version
 
-**Release 1.2+:** Auswertungen (US-12, 43), Widgets und Live Activity, Siri, Lerngruppen, Tagebuch, Stundenplan, Monetarisierung
+**Release 1.2+:** Auswertungen (US-12, 43), Live Activity, Kontrollzentrum, Siri, Lerngruppen, Tagebuch, Stundenplan, Monetarisierung
 
 ## 8. Sprint-Plan (Vorschlag)
 
 | Sprint | Sprintziel | Inhalt |
 |---|---|---|
 | **0** | „Wir können loslegen“ | TE-01, TE-07, Wireframes, Start von SP-01 und SP-03, Developer-Account |
-| **1** | „Ich kann Zeit erfassen“ | TE-02, TE-03, US-01, 10, 02 |
+| **1** | „Ich kann Zeit erfassen“ | TE-02, TE-03, TE-08, US-01, 10, 02 |
 | **2** | „Erfassen geht schnell und fehlerarm“ | US-03, 04, 34, 35, 15 |
 | **3** | „Ich sehe meine Woche im Kontext“ | US-59, 27, 08, 07 |
 | **4** | „Bereit für TestFlight“ | US-28, 49, 53, 54, 56, Bugfixing, TE-05 |
